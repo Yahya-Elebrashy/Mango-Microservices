@@ -1,0 +1,82 @@
+<div class="container py-4">
+
+    <!-- Page header -->
+    <div class="d-flex flex-column flex-md-row
+              justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-0">Our Menu</h3>
+            <p class="text-muted small mb-0">
+                {{ filtered().length }} item{{ filtered().length !== 1 ? 's' : '' }} available
+            </p>
+        </div>
+
+        <!-- Search + filter bar -->
+        <div class="d-flex gap-2 flex-wrap">
+            <input type="search" class="form-control form-control-sm" style="min-width: 200px"
+                placeholder="Search products..." [value]="searchTerm()" (input)="onSearch($any($event.target).value)" />
+
+            <select class="form-select form-select-sm" style="min-width: 150px" [value]="selectedCategory()"
+                (change)="onCategoryChange($any($event.target).value)">
+                <option value="">All categories</option>
+                <option *ngFor="let cat of categories()" [value]="cat">{{ cat }}</option>
+            </select>
+
+            <button *ngIf="searchTerm() || selectedCategory()" class="btn btn-sm btn-outline-secondary"
+                (click)="clearFilters()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Error -->
+    <app-alert [message]="errorMsg()" type="danger" />
+
+    <!-- Spinner -->
+    <app-spinner [visible]="loading()" />
+
+    <!-- Empty state -->
+    <div *ngIf="!loading() && filtered().length === 0 && !errorMsg()" class="text-center py-5">
+        <i class="bi bi-basket text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">No products found.</p>
+        <button *ngIf="searchTerm() || selectedCategory()" class="btn btn-sm btn-outline-secondary"
+            (click)="clearFilters()">
+            Clear filters
+        </button>
+    </div>
+
+    <!-- Product grid -->
+    <div *ngIf="!loading() && filtered().length > 0"
+        class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        <div class="col" *ngFor="let product of filtered()">
+            <div class="card h-100 border-0 shadow-sm product-card">
+
+                <!-- Image -->
+                <div class="product-img-wrapper">
+                    <img [src]="product.imageUrl || 'assets/images/placeholder.png'" [alt]="product.name"
+                        class="card-img-top product-img" loading="lazy" />
+                    <span class="badge bg-warning text-dark category-badge">
+                        {{ product.categoryName }}
+                    </span>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title fw-bold mb-1">{{ product.name }}</h6>
+                    <p class="card-text text-muted small flex-grow-1 description-clamp">
+                        {{ product.description }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="fw-bold text-primary fs-5">
+                            ${{ product.price | number:'1.2-2' }}
+                        </span>
+                        <a [routerLink]="['/details', product.productId]" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye me-1"></i>Details
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>

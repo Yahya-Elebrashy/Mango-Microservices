@@ -1,0 +1,17 @@
+/* You can add global styles to this file, and also import other style files */
+:root {
+  --mango-primary: #f97316;
+  --mango-dark:    #c2410c;
+}
+
+.btn-primary {
+  background-color: var(--mango-primary);
+  border-color: var(--mango-primary);
+  &:hover {
+    background-color: var(--mango-dark);
+    border-color: var(--mango-dark);
+  }
+}
+
+.text-primary { color: var(--mango-primary) !important; }
+.toast-container { z-index: 9999; }

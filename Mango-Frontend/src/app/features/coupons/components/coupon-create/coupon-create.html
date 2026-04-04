@@ -1,0 +1,124 @@
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-5">
+
+            <!-- Header -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a routerLink="/coupon" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <h4 class="fw-bold mb-0">New coupon</h4>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+                        <!-- Coupon code -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Coupon code
+                                <span class="text-muted fw-normal small">
+                                    (letters, numbers, - and _ only)
+                                </span>
+                            </label>
+                            <input type="text" class="form-control font-monospace text-uppercase" [class.is-invalid]="f['couponCode'].invalid
+                                     && f['couponCode'].touched" formControlName="couponCode"
+                                placeholder="e.g. MANGO20" (input)="onCodeInput($event)" autocomplete="off" />
+                            <div class="invalid-feedback">
+                                <span *ngIf="f['couponCode'].errors?.['required']">
+                                    Code is required.
+                                </span>
+                                <span *ngIf="f['couponCode'].errors?.['minlength']">
+                                    Minimum 3 characters.
+                                </span>
+                                <span *ngIf="f['couponCode'].errors?.['maxlength']">
+                                    Maximum 20 characters.
+                                </span>
+                                <span *ngIf="f['couponCode'].errors?.['pattern']">
+                                    Only uppercase letters, numbers, - and _ allowed.
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Discount amount -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Discount amount ($)
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" [class.is-invalid]="f['discountAmount'].invalid
+                                       && f['discountAmount'].touched" formControlName="discountAmount"
+                                    placeholder="0.00" step="0.01" min="0.01" />
+                                <div class="invalid-feedback">
+                                    <span *ngIf="f['discountAmount'].errors?.['required']">
+                                        Discount is required.
+                                    </span>
+                                    <span *ngIf="f['discountAmount'].errors?.['min']">
+                                        Must be greater than 0.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Minimum order amount -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                Minimum order amount ($)
+                                <span class="text-muted fw-normal small">
+                                    (0 = no minimum)
+                                </span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" [class.is-invalid]="f['minAmount'].invalid
+                                       && f['minAmount'].touched" formControlName="minAmount" placeholder="0.00"
+                                    step="0.01" min="0" />
+                                <div class="invalid-feedback">
+                                    <span *ngIf="f['minAmount'].errors?.['required']">
+                                        Min amount is required.
+                                    </span>
+                                    <span *ngIf="f['minAmount'].errors?.['min']">
+                                        Cannot be negative.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preview card -->
+                        <div *ngIf="f['couponCode'].value || f['discountAmount'].value" class="alert alert-warning d-flex align-items-center
+                     gap-3 mb-4">
+                            <i class="bi bi-ticket-perforated-fill fs-4"></i>
+                            <div>
+                                <p class="fw-bold font-monospace mb-0">
+                                    {{ f['couponCode'].value || '—' }}
+                                </p>
+                                <p class="small mb-0">
+                                    ${{ f['discountAmount'].value || 0 | number:'1.2-2' }}
+                                    off orders over
+                                    ${{ f['minAmount'].value || 0 | number:'1.2-2' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" [disabled]="loading">
+                                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status">
+                                </span>
+                                {{ loading ? 'Creating...' : 'Create coupon' }}
+                            </button>
+                            <a routerLink="/coupon" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

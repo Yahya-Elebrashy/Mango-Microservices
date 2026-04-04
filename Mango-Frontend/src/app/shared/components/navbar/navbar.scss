@@ -1,0 +1,19 @@
+.navbar {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+    letter-spacing: 0.03em;
+}
+
+.nav-link.active {
+    color: #ffc107 !important; 
+    font-weight: 500;
+}
+
+.badge {
+    min-width: 18px;
+    min-height: 18px;
+    line-height: 1;
+}

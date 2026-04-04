@@ -1,0 +1,130 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <a routerLink="/product" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <h4 class="fw-bold mb-0">New product</h4>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+            <!-- Name -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                [class.is-invalid]="f['name'].invalid && f['name'].touched"
+                formControlName="name"
+                placeholder="e.g. Mango Smoothie" />
+              <div class="invalid-feedback">
+                <span *ngIf="f['name'].errors?.['required']">Name is required.</span>
+                <span *ngIf="f['name'].errors?.['minlength']">Minimum 2 characters.</span>
+              </div>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Price ($)</label>
+              <input
+                type="number"
+                class="form-control"
+                [class.is-invalid]="f['price'].invalid && f['price'].touched"
+                formControlName="price"
+                placeholder="0.00"
+                step="0.01"
+                min="0.01" />
+              <div class="invalid-feedback">
+                <span *ngIf="f['price'].errors?.['required']">Price is required.</span>
+                <span *ngIf="f['price'].errors?.['min']">Price must be greater than 0.</span>
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Category</label>
+              <input
+                type="text"
+                class="form-control"
+                [class.is-invalid]="f['categoryName'].invalid && f['categoryName'].touched"
+                formControlName="categoryName"
+                placeholder="e.g. Drinks" />
+              <div class="invalid-feedback">Category is required.</div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea
+                class="form-control"
+                rows="3"
+                [class.is-invalid]="f['description'].invalid && f['description'].touched"
+                formControlName="description"
+                placeholder="Describe the product...">
+              </textarea>
+              <div class="invalid-feedback">
+                <span *ngIf="f['description'].errors?.['required']">Description is required.</span>
+                <span *ngIf="f['description'].errors?.['minlength']">Minimum 10 characters.</span>
+              </div>
+            </div>
+
+            <!-- Image upload -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                Product image
+                <span class="text-muted fw-normal small">(JPG or PNG, max 1MB)</span>
+              </label>
+
+              <!-- Preview -->
+              <div
+                *ngIf="imagePreview"
+                class="mb-2 rounded overflow-hidden"
+                style="height:160px;background:#f8f9fa;">
+                <img
+                  [src]="imagePreview"
+                  alt="Preview"
+                  class="w-100 h-100"
+                  style="object-fit:contain;" />
+              </div>
+
+              <input
+                type="file"
+                class="form-control"
+                [class.is-invalid]="!!imageError"
+                accept=".jpg,.jpeg,.png"
+                (change)="onFileChange($event)" />
+              <div class="invalid-feedback" *ngIf="imageError">
+                {{ imageError }}
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="loading">
+                <span
+                  *ngIf="loading"
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status">
+                </span>
+                {{ loading ? 'Creating...' : 'Create product' }}
+              </button>
+              <a routerLink="/product" class="btn btn-outline-secondary">
+                Cancel
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
