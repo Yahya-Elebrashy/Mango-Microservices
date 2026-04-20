@@ -1,0 +1,90 @@
+<div class="container py-4">
+
+  <!-- Back -->
+  <a routerLink="/" class="btn btn-sm btn-outline-secondary mb-4">
+    <i class="bi bi-arrow-left me-1"></i> Back to menu
+  </a>
+
+  <!-- Spinner -->
+  <app-spinner [visible]="loading()" />
+
+  <!-- Error -->
+  <app-alert [message]="errorMsg()" type="danger" />
+
+  <!-- Detail card -->
+  <div *ngIf="!loading() && product()" class="row g-4 align-items-start">
+
+    <!-- Image -->
+    <div class="col-md-5">
+      <div class="rounded-3 overflow-hidden shadow-sm bg-light" style="height: 360px;">
+        <img
+          [src]="product()!.imageUrl || 'assets/images/placeholder.png'"
+          [alt]="product()!.name"
+          class="w-100 h-100"
+          style="object-fit: cover;"
+        />
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="col-md-7">
+
+      <span class="badge bg-warning text-dark mb-2">
+        {{ product()!.categoryName }}
+      </span>
+
+      <h2 class="fw-bold mb-1">{{ product()!.name }}</h2>
+
+      <p class="fs-4 fw-bold text-primary mb-3">
+        ${{ product()!.price | number:'1.2-2' }}
+      </p>
+
+      <p class="text-muted mb-4">{{ product()!.description }}</p>
+
+      <!-- Quantity selector -->
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <span class="fw-semibold">Quantity:</span>
+        <div class="input-group" style="width: 130px;">
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="decrement()"
+            [disabled]="!canDecrement()"
+          >
+            <i class="bi bi-dash"></i>
+          </button>
+          <input
+            type="number"
+            class="form-control text-center"
+            [value]="count()"
+            min="1"
+            readonly
+          />
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="increment()"
+          >
+            <i class="bi bi-plus"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Add to cart -->
+      <button
+        class="btn btn-primary btn-lg px-5"
+        (click)="addToCart()"
+        [disabled]="addingToCart()"
+      >
+        <span
+          *ngIf="addingToCart()"
+          class="spinner-border spinner-border-sm me-2"
+          role="status"
+        ></span>
+        <i *ngIf="!addingToCart()" class="bi bi-cart-plus me-2"></i>
+        {{ addingToCart() ? 'Adding...' : 'Add to cart' }}
+      </button>
+
+    </div>
+  </div>
+</div>

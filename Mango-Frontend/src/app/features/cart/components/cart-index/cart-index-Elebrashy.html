@@ -1,0 +1,144 @@
+<div class="container py-4">
+
+    <h3 class="fw-bold mb-4">
+        <i class="bi bi-cart3 me-2"></i>Your cart
+    </h3>
+
+    <app-alert [message]="errorMsg()" type="danger" />
+    <app-spinner [visible]="loading()" />
+
+    <!-- Empty cart -->
+    <div *ngIf="!loading() && !errorMsg() && itemCount() === 0" class="text-center py-5">
+        <i class="bi bi-cart-x text-muted" style="font-size:3.5rem;"></i>
+        <p class="text-muted mt-3 fs-5">Your cart is empty.</p>
+        <a routerLink="/" class="btn btn-primary mt-2">Browse menu</a>
+    </div>
+
+    <!-- Cart content -->
+    <div *ngIf="!loading() && cart() && itemCount() > 0" class="row g-4 align-items-start">
+
+        <!-- Items column -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+
+                        <li *ngFor="let item of cart()!.cartDetails" class="list-group-item px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+
+                                <!-- Thumbnail -->
+                                <img [src]="item.productDto?.imageUrl || 'assets/images/placeholder.png'"
+                                    [alt]="item.productDto?.name" class="rounded"
+                                    style="width:64px;height:64px;object-fit:cover;flex-shrink:0;" />
+
+                                <!-- Info -->
+                                <div class="flex-grow-1">
+                                    <p class="fw-semibold mb-0">{{ item.productDto?.name }}</p>
+                                    <p class="text-muted small mb-0">
+                                        Qty: {{ item.count }} &times;
+                                        ${{ item.productDto?.price | number:'1.2-2' }}
+                                    </p>
+                                </div>
+
+                                <!-- Line total -->
+                                <span class="fw-bold text-primary">
+                                    ${{ (item.count * (item.productDto?.price ?? 0)) | number:'1.2-2' }}
+                                </span>
+
+                                <!-- Remove -->
+                                <button class="btn btn-sm btn-outline-danger" (click)="removeItem(item.cartDetailsId!)"
+                                    [disabled]="removingItemId() === item.cartDetailsId">
+                                    <span *ngIf="removingItemId() === item.cartDetailsId"
+                                        class="spinner-border spinner-border-sm" role="status"></span>
+                                    <i *ngIf="removingItemId() !== item.cartDetailsId" class="bi bi-trash"></i>
+                                </button>
+
+                            </div>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Email cart -->
+            <div class="mt-3 text-end">
+                <button class="btn btn-sm btn-outline-secondary" (click)="emailCart()" [disabled]="emailingCart()">
+                    <span *ngIf="emailingCart()" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    <i *ngIf="!emailingCart()" class="bi bi-envelope me-1"></i>
+                    {{ emailingCart() ? 'Sending...' : 'Email my cart' }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary column -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <h5 class="fw-bold mb-3">Order summary</h5>
+
+                    <!-- Coupon input -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Promo code</label>
+
+                        <!-- No coupon applied -->
+                        <div *ngIf="!cart()!.cartHeader.couponCode" class="input-group input-group-sm">
+                            <input type="text" class="form-control" placeholder="Enter code" [value]="couponCode()"
+                                (input)="couponCode.set($any($event.target).value)" />
+                            <button class="btn btn-outline-primary" (click)="applyCoupon()"
+                                [disabled]="applyingCoupon() || !couponCode().trim()">
+                                <span *ngIf="applyingCoupon()" class="spinner-border spinner-border-sm"
+                                    role="status"></span>
+                                <span *ngIf="!applyingCoupon()">Apply</span>
+                            </button>
+                        </div>
+
+                        <!-- Coupon applied -->
+                        <div *ngIf="cart()!.cartHeader.couponCode" class="d-flex align-items-center justify-content-between
+                     bg-success bg-opacity-10 border border-success
+                     rounded px-3 py-2">
+                            <span class="text-success small fw-semibold">
+                                <i class="bi bi-tag-fill me-1"></i>
+                                {{ cart()!.cartHeader.couponCode }}
+                            </span>
+                            <button class="btn btn-sm btn-link text-danger p-0" (click)="removeCoupon()"
+                                [disabled]="removingCoupon()">
+                                <span *ngIf="removingCoupon()" class="spinner-border spinner-border-sm"
+                                    role="status"></span>
+                                <i *ngIf="!removingCoupon()" class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Totals -->
+                    <div class="d-flex justify-content-between mb-2 text-muted small">
+                        <span>Subtotal ({{ itemCount() }} items)</span>
+                        <span>${{ (cartTotal() + discount()) | number:'1.2-2' }}</span>
+                    </div>
+
+                    <div *ngIf="discount() > 0" class="d-flex justify-content-between mb-2 text-success small">
+                        <span>Discount</span>
+                        <span>-${{ discount() | number:'1.2-2' }}</span>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
+                        <span>Total</span>
+                        <span class="text-primary">${{ cartTotal() | number:'1.2-2' }}</span>
+                    </div>
+
+                    <div class="d-grid">
+                        <a routerLink="/cart/checkout" class="btn btn-primary btn-lg">
+                            <i class="bi bi-credit-card me-2"></i>Checkout
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -31,7 +31,7 @@ export class ProductService {
     return this.api.put<ProductDto>(
       `${this.base}/api/product`,
       product,
-      'multipart'
+      product.image ? 'multipart' : 'json'
     );
   }
 

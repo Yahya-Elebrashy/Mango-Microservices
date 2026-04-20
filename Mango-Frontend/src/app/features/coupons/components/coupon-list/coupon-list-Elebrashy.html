@@ -1,0 +1,72 @@
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">Coupons</h3>
+            <p class="text-muted small mb-0">
+                {{ coupons().length }} coupon{{ coupons().length !== 1 ? 's' : '' }}
+            </p>
+        </div>
+        <a routerLink="/coupon/create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> New coupon
+        </a>
+    </div>
+
+    <app-alert [message]="errorMsg()" type="danger" />
+    <app-spinner [visible]="loading()" />
+
+    <!-- Empty state -->
+    <div *ngIf="!loading() && coupons().length === 0 && !errorMsg()" class="text-center py-5">
+        <i class="bi bi-ticket-perforated text-muted" style="font-size:3rem;"></i>
+        <p class="text-muted mt-3">No coupons yet.</p>
+        <a routerLink="/coupon/create" class="btn btn-primary btn-sm">
+            Create your first coupon
+        </a>
+    </div>
+
+    <!-- Coupons table -->
+    <div *ngIf="!loading() && coupons().length > 0" class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Code</th>
+                        <th class="text-end">Discount</th>
+                        <th class="text-end">Min. amount</th>
+                        <th class="text-center" style="width:120px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let coupon of coupons()">
+
+                        <td class="text-muted small">{{ coupon.couponId }}</td>
+
+                        <td>
+                            <span class="badge bg-warning text-dark px-3 py-2 fs-6 font-monospace">
+                                {{ coupon.couponCode }}
+                            </span>
+                        </td>
+
+                        <td class="text-end fw-bold text-success">
+                            ${{ coupon.discountAmount | number:'1.2-2' }}
+                        </td>
+
+                        <td class="text-end text-muted">
+                            ${{ coupon.minAmount | number:'1.2-2' }}
+                        </td>
+
+                        <td class="text-center">
+                            <a [routerLink]="['/coupon/delete', coupon.couponId]" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

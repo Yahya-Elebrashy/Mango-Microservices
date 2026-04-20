@@ -1,0 +1,54 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+
+      <app-spinner [visible]="loading()" />
+
+      <!-- Success -->
+      <div *ngIf="!loading() && success()">
+        <div class="mb-4">
+          <i class="bi bi-check-circle-fill text-success" style="font-size:5rem;"></i>
+        </div>
+        <h3 class="fw-bold mb-2">Order confirmed!</h3>
+        <p class="text-muted mb-1">
+          Thank you for your order. We'll get it ready for pickup.
+        </p>
+        <p class="text-muted small mb-4">
+          Order <strong>#{{ orderId }}</strong>
+        </p>
+
+        <div class="d-flex gap-3 justify-content-center">
+          <a [routerLink]="['/order', orderId]" class="btn btn-outline-primary">
+            <i class="bi bi-receipt me-1"></i>View order
+          </a>
+          <a routerLink="/" class="btn btn-primary">
+            <i class="bi bi-house me-1"></i>Back to menu
+          </a>
+        </div>
+      </div>
+
+      <!-- Failed / Pending -->
+      <div *ngIf="!loading() && !success()">
+        <div class="mb-4">
+          <i class="bi bi-x-circle-fill text-danger" style="font-size:5rem;"></i>
+        </div>
+        <h3 class="fw-bold mb-2">Payment not confirmed</h3>
+        <p class="text-muted mb-4">
+          Your order status is
+          <strong>{{ order()?.status ?? 'unknown' }}</strong>.
+          Please try again or contact support.
+        </p>
+
+        <div class="d-flex gap-3 justify-content-center">
+          <a routerLink="/cart/checkout" class="btn btn-primary">
+            Try again
+          </a>
+          <a routerLink="/" class="btn btn-outline-secondary">
+            Back to menu
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
