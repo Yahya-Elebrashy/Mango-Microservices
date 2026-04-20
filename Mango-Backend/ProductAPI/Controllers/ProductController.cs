@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Mango.Services.ProductAPI.Constants;
 using Mango.Services.ProductAPI.Data;
 using Mango.Services.ProductAPI.Models.Dto;
 using Microsoft.AspNetCore.Authorization;
@@ -56,7 +57,7 @@ namespace Mango.Services.ProductAPI.Controllers
             return _responseDto;
         }
         
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = SD.RoleAdmin)]
         [HttpPost]
         public ResponseDto Post(ProductDto productDto)
         {
@@ -104,7 +105,7 @@ namespace Mango.Services.ProductAPI.Controllers
             return _responseDto;
         }
         
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = SD.RoleAdmin)]
         [HttpPut]
         public ResponseDto Update(ProductDto productDto)
         {
@@ -147,7 +148,7 @@ namespace Mango.Services.ProductAPI.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = SD.RoleAdmin)]
         public ResponseDto Delete(int id)
         {
             try

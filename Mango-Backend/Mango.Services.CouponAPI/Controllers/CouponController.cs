@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Mango.Services.CouponAPI.Constants;
 using Mango.Services.CouponAPI.Data;
 using Mango.Services.CouponAPI.Models;
 using Mango.Services.CouponAPI.Models.Dto;
@@ -72,7 +73,7 @@ namespace Mango.Services.CouponAPI.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = SD.RoleAdmin)]
         public ResponseDto Post(CouponDto couponDto)
         {
             try
@@ -101,7 +102,7 @@ namespace Mango.Services.CouponAPI.Controllers
             return _responseDto;
         }
 
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Roles = SD.RoleAdmin)]
         [HttpDelete("{id:int}")]
         public ResponseDto Delete(int id)
         {

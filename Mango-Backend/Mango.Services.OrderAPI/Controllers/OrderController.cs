@@ -197,7 +197,7 @@ namespace Mango.Services.OrderAPI.Controllers
             return _response;
         }
 
-        [Authorize]
+        [Authorize(Roles = SD.RoleAdmin)]
         [HttpPost("UpdateOrderStatus/{orderId:int}")]
         public async Task<ResponseDto> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
         {
