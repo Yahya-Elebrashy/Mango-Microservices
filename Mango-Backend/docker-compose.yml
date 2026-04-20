@@ -1,0 +1,167 @@
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Pass@1234", "-Q", "SELECT 1", "-C"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mango-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mango-network
+
+  product-api:
+    build:
+      context: .
+      dockerfile: ./ProductAPI/Dockerfile
+    image: mango-product-api
+    container_name: product-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION};Database=Mango_Product;
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - mango-network
+
+  auth-api:
+    build:
+      context: .
+      dockerfile: ./Mango.Services.AuthAPI/Dockerfile
+    image: mango-auth-api
+    container_name: auth-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION};Database=Mango_Auth
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - mango-network
+
+  coupon-api:
+    build:
+      context: .
+      dockerfile: ./Mango.Services.CouponAPI/Dockerfile
+    image: mango-coupon-api
+    container_name: coupon-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION};Database=Mango_Coupon
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - mango-network
+
+  cart-api:
+    build:
+      context: .
+      dockerfile: ./Mango.Services.ShoppingCartAPI/Dockerfile
+    image: mango-cart-api
+    container_name: cart-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION};Database=Mango_ShoppingCart
+      - ServiceUrls__ProductAPI=http://product-api:8080
+      - ServiceUrls__CouponAPI=http://coupon-api:8080
+      - RabbitMQ__Hostname=${RABBITMQ_HOST}
+      - RabbitMQ__Username=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASS}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mango-network
+
+  order-api:
+    build:
+      context: .
+      dockerfile: ./Mango.Services.OrderAPI/Dockerfile
+    image: mango-order-api
+    container_name: order-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION};Database=Mango_Order
+      - RabbitMQ__Hostname=${RABBITMQ_HOST}
+      - RabbitMQ__Username=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASS}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mango-network
+
+  email-api:
+    build:
+      context: .
+      dockerfile: ./Mango.Services.EmailAPI/Dockerfile
+    image: mango-email-api
+    container_name: email-api
+    restart: on-failure
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION};Database=Mango_Email
+      - RabbitMQ__Hostname=${RABBITMQ_HOST}
+      - RabbitMQ__Username=${RABBITMQ_USER}
+      - RabbitMQ__Password=${RABBITMQ_PASS}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mango-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: ./Mango.GatewaySolution/Dockerfile
+    image: mango-gateway
+    container_name: gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
+    ports:
+      - "7000:8080"
+    depends_on:
+      - product-api
+      - auth-api
+      - coupon-api
+      - cart-api
+      - order-api
+    networks:
+      - mango-network
+
+networks:
+  mango-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
