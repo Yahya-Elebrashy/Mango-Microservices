@@ -47,7 +47,7 @@ export class CartService {
       ...cart,
       cartHeader: { ...cart.cartHeader, couponCode: '' },
     };
-    return this.api.post(`${this.base}/api/cart/ApplyCoupon`, payload);
+    return this.api.post(`${this.base}/api/cart/RemoveCoupon`, payload);
   }
 
   emailCart(cart: CartDto): Observable<ResponseDto<unknown>> {

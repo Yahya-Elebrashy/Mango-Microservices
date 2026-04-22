@@ -5,7 +5,7 @@ using Mango.Services.ShoppingCartAPI.Service;
 using Mango.Services.ShoppingCartAPI.Service.IService;
 using MessageBus;
 using Microsoft.EntityFrameworkCore;
-
+using MessageBus;
 namespace Mango.Services.ShoppingCartAPI
 {
     public class Program
@@ -21,7 +21,15 @@ namespace Mango.Services.ShoppingCartAPI
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
-
+            builder.Services.AddScoped<IMessageBus>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                return new MessageBus.MessageBus(
+                    hostname: config["RabbitMQ:Hostname"] ?? "localhost",
+                    username: config["RabbitMQ:Username"] ?? "guest",
+                    password: config["RabbitMQ:Password"] ?? "guest"
+                );
+            });
             IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
             builder.Services.AddSingleton(mapper);
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -29,7 +37,6 @@ namespace Mango.Services.ShoppingCartAPI
             new Uri(builder.Configuration["ServiceUrls:ProductAPI"]));
             builder.Services.AddHttpClient("Coupon", u => u.BaseAddress =
             new Uri(builder.Configuration["ServiceUrls:CouponAPI"]));
-            builder.Services.AddSingleton<IMessageBus, MessageBus.MessageBus>();
             builder.Services.AddControllers();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<ICouponService, CouponService>();

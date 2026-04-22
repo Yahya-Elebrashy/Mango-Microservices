@@ -38,6 +38,8 @@ services:
       dockerfile: ./ProductAPI/Dockerfile
     image: mango-product-api
     container_name: product-api
+    ports:
+    - "7001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION};Database=Mango_Product;
@@ -71,6 +73,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNET_ENVIRONMENT}
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION};Database=Mango_Coupon
+      - Stripe__SecretKey=${STRIPE_SECRET}
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -111,6 +114,7 @@ services:
       - RabbitMQ__Hostname=${RABBITMQ_HOST}
       - RabbitMQ__Username=${RABBITMQ_USER}
       - RabbitMQ__Password=${RABBITMQ_PASS}
+      - Stripe__SecretKey=${STRIPE_SECRET}
     depends_on:
       sqlserver:
         condition: service_healthy

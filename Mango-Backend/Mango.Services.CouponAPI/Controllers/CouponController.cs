@@ -15,112 +15,176 @@ namespace Mango.Services.CouponAPI.Controllers
     {
         private readonly AppDbContext _db;
         private readonly IMapper _mapper;
-        private readonly ResponseDto _responseDto;
 
         public CouponController(AppDbContext db, IMapper mapper)
         {
             _db = db;
             _mapper = mapper;
-            _responseDto = new ResponseDto();
         }
         [Authorize]
         [HttpGet]
-        public ResponseDto Get()
+        public ActionResult<ResponseDto<IEnumerable<CouponDto>>> Get()
         {
+            var response = new ResponseDto<IEnumerable<CouponDto>>();
+
             try
             {
-                IEnumerable<Coupon> objList = _db.Coupons.ToList();
-                _responseDto.Result = _mapper.Map<IEnumerable<CouponDto>>(objList); ;
+                var coupons = _db.Coupons.ToList();
+                response.Result = _mapper.Map<IEnumerable<CouponDto>>(coupons);
             }
             catch (Exception ex)
             {
-                _responseDto.IsSuccess = false;
-                _responseDto.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
 
         [HttpGet("{id:int}")]
-        public ResponseDto Get(int id)
+        public ActionResult<ResponseDto<Coupon>> Get(int id)
         {
+            var response = new ResponseDto<Coupon>();
+
             try
             {
-                Coupon obj = _db.Coupons.First(c => c.CouponId == id);
-                _responseDto.Result = obj;
+                var coupon = _db.Coupons.FirstOrDefault(x => x.CouponId == id);
+
+                if (coupon == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Coupon not found";
+                    return NotFound(response);
+                }
+
+                response.Result = coupon;
             }
             catch (Exception ex)
             {
-                _responseDto.IsSuccess = false;
-                _responseDto.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
 
         [HttpGet("GetByCode/{code}")]
-        public ResponseDto GetByCode(string code)
+        public ActionResult<ResponseDto<CouponDto>> GetByCode(string code)
         {
+            var response = new ResponseDto<CouponDto>();
+
             try
             {
-                Coupon obj = _db.Coupons.First(c => c.CouponCode.ToLower() == code.ToLower());
-                _responseDto.Result = _mapper.Map<CouponDto>(obj);
+                var coupon = _db.Coupons
+                    .FirstOrDefault(x => x.CouponCode.ToLower() == code.ToLower());
+
+                if (coupon == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Coupon not found";
+                    return NotFound(response);
+                }
+
+                response.Result = _mapper.Map<CouponDto>(coupon);
             }
             catch (Exception ex)
             {
-                _responseDto.IsSuccess = false;
-                _responseDto.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
 
         [HttpPost]
         [Authorize(Roles = SD.RoleAdmin)]
-        public ResponseDto Post(CouponDto couponDto)
+        public ActionResult<ResponseDto<CouponDto>> Post(CouponDto couponDto)
         {
+            var response = new ResponseDto<CouponDto>();
+
             try
             {
-                Coupon obj = _mapper.Map<Coupon>(couponDto);
-                _db.Coupons.Add(obj);
+                var coupon = _mapper.Map<Coupon>(couponDto);
+
+                _db.Coupons.Add(coupon);
                 _db.SaveChanges();
 
-                var options = new Stripe.CouponCreateOptions
+                // Stripe
+                try
                 {
-                    AmountOff = (long)(couponDto.DiscountAmount * 100),
-                    Name = couponDto.CouponCode,
-                    Currency = "usd",
-                    Id = couponDto.CouponCode,
-                };
-                var service = new Stripe.CouponService();
-                service.Create(options);
+                    var options = new Stripe.CouponCreateOptions
+                    {
+                        AmountOff = (long)(couponDto.DiscountAmount * 100),
+                        Name = couponDto.CouponCode,
+                        Currency = "usd",
+                        Id = couponDto.CouponCode,
+                    };
 
-                _responseDto.Result = _mapper.Map<CouponDto>(obj);
+                    var service = new Stripe.CouponService();
+                    service.Create(options);
+                }
+                catch (Exception stripeEx)
+                {
+                    // log بس — متكسرش العملية
+                    response.Message = $"Created locally but Stripe failed: {stripeEx.Message}";
+                }
+
+                response.Result = _mapper.Map<CouponDto>(coupon);
             }
             catch (Exception ex)
             {
-                _responseDto.IsSuccess = false;
-                _responseDto.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
 
         [Authorize(Roles = SD.RoleAdmin)]
         [HttpDelete("{id:int}")]
-        public ResponseDto Delete(int id)
+        public ActionResult<ResponseDto<string>> Delete(int id)
         {
+            var response = new ResponseDto<string>();
+
             try
             {
-                Coupon? obj = _db.Coupons.First(c => c.CouponId == id);
-                _db.Remove(obj);
+                var coupon = _db.Coupons.FirstOrDefault(x => x.CouponId == id);
+
+                if (coupon == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Coupon not found";
+                    return NotFound(response);
+                }
+
+                _db.Coupons.Remove(coupon);
                 _db.SaveChanges();
-               
-                var service = new Stripe.CouponService();
-                service.Delete(obj.CouponCode);
+
+                // Stripe
+                try
+                {
+                    var service = new Stripe.CouponService();
+                    service.Delete(coupon.CouponCode);
+                }
+                catch (Exception stripeEx)
+                {
+                    response.Message = $"Deleted locally but Stripe failed: {stripeEx.Message}";
+                }
+
+                response.Result = "Deleted successfully";
             }
             catch (Exception ex)
             {
-                _responseDto.IsSuccess = false;
-                _responseDto.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
     }
 }

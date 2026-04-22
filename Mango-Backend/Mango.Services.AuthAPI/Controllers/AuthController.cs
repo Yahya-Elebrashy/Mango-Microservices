@@ -1,4 +1,6 @@
-﻿using Mango.Services.AuthAPI.Models.Dto;
+﻿using Azure;
+using Azure.Core;
+using Mango.Services.AuthAPI.Models.Dto;
 using Mango.Services.AuthAPI.Service.IService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,52 +11,90 @@ namespace Mango.Services.AuthAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        public readonly ResponseDto _response;
         private readonly IAuthService _authService;
 
         public AuthController(IAuthService authService)
         {
-            _response = new ResponseDto();
             _authService = authService;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterationRequestDto registerationRequestDto)
+        public async Task<ActionResult<ResponseDto<string>>> Register([FromBody] RegisterationRequestDto request)
         {
-            var errorMessage = await _authService.Register(registerationRequestDto);
-            if(!string.IsNullOrEmpty(errorMessage))
+            var response = new ResponseDto<string>();
+
+            try
             {
-                _response.Message = errorMessage;
-                _response.IsSuccess = false;
-                return BadRequest(_response);
+                var errorMessage = await _authService.Register(request);
+
+                if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    response.IsSuccess = false;
+                    response.Message = errorMessage;
+                    return BadRequest(response);
+                }
+
+                response.Result = "User registered successfully";
+                return Ok(response);
             }
-            return Ok(_response);
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
+            }
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequestDto)
+        public async Task<ActionResult<ResponseDto<LoginResponseDto>>> Login([FromBody] LoginRequestDto request)
         {
-            var loginResponse = await _authService.Login(loginRequestDto);
-            if (loginResponse.User == null)
+            var response = new ResponseDto<LoginResponseDto>();
+            try
             {
-                _response.Message = "Username or Password is incorrect";
-                _response.IsSuccess = false;
-                return BadRequest(_response);
+                var loginResponse = await _authService.Login(request);
+
+                if (loginResponse == null || loginResponse.User == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Username or Password is incorrect";
+                    return BadRequest(response);
+                }
+
+                response.Result = loginResponse;
+                return Ok(response);
             }
-            _response.Result = loginResponse;
-            return Ok(_response);
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
+            }
         }
         [HttpPost("AssignRole")]
-        public async Task<IActionResult> AssignRole([FromBody] RegisterationRequestDto registerationRequestDto)
+        public async Task<ActionResult<ResponseDto<string>>> AssignRole([FromBody] RegisterationRequestDto request)
         {
-            var assignRoleSuccessful = await _authService.AssignRole(registerationRequestDto.Email, registerationRequestDto.Role.ToUpper());
-            if (!assignRoleSuccessful)
+            var response = new ResponseDto<string>();
+
+            try
             {
-                _response.Message = "Error encountered.";
-                _response.IsSuccess = false;
-                return BadRequest(_response);
+                var success = await _authService.AssignRole(request.Email, request.Role.ToUpper());
+
+                if (!success)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Error assigning role";
+                    return BadRequest(response);
+                }
+
+                response.Result = "Role assigned successfully";
+                return Ok(response);
             }
-            return Ok(_response);
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
+            }
         }
     }
 }

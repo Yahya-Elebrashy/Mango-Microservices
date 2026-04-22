@@ -15,11 +15,11 @@ namespace MessageBus
         private readonly string _password;
         private IConnection _connection;
 
-        public MessageBus()
+        public MessageBus(string hostname = "localhost", string username = "guest", string password = "guest")
         {
-            _hostname = "localhost";
-            _username = "guest";
-            _password = "guest";
+            _hostname = hostname;
+            _username = username;
+            _password = password;
         }
         public async Task PublishMessage(object message, string queueName)
         {

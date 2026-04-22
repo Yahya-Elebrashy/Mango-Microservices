@@ -17,14 +17,17 @@ namespace Mango.Services.ShoppingCartAPI.Service
         public async Task<IEnumerable<ProductDto>> GetProductsAsync()
         {
             var client = _httpClientFactory.CreateClient("Product");
+
             var response = await client.GetAsync("/api/product");
+
+            if (!response.IsSuccessStatusCode)
+                return new List<ProductDto>();
+
             var apiContent = await response.Content.ReadAsStringAsync();
-            var res = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
-            if (res != null && res.IsSuccess)
-            {
-                return JsonConvert.DeserializeObject<IEnumerable<ProductDto>>(Convert.ToString(res.Result));
-            }
-            return new List<ProductDto>();
+
+            var res = JsonConvert.DeserializeObject<ResponseDto<IEnumerable<ProductDto>>>(apiContent);
+
+            return res?.Result ?? new List<ProductDto>();
         }
     }
 }

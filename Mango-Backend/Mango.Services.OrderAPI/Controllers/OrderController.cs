@@ -1,22 +1,22 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Mango.Services.OrderAPI.Models.Dto;
-using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
 using Mango.Services.OrderAPI.Data;
-using AutoMapper;
 using Mango.Services.OrderAPI.Models;
+using Mango.Services.OrderAPI.Models.Dto;
 using Mango.Services.OrderAPI.Utility;
-using Stripe.Checkout;
-using Stripe;
 using MessageBus;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
+using Stripe.Checkout;
+using Stripe.Climate;
 namespace Mango.Services.OrderAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class OrderController : ControllerBase
     {
-        protected ResponseDto _response;
         private IMapper _mapper;
         private readonly AppDbContext _db;
         private readonly IConfiguration _configuration;
@@ -25,57 +25,69 @@ namespace Mango.Services.OrderAPI.Controllers
         public OrderController(AppDbContext db, IMapper mapper, IConfiguration configuration, IMessageBus messageBus)
         {
             _db = db;
-            this._response = new ResponseDto();
             _mapper = mapper;
             _messageBus = messageBus;
             _configuration = configuration;
         }
         [Authorize]
         [HttpGet("GetOrders")]
-        public ResponseDto? Get(string? userId = "")
+        public async Task<ActionResult<ResponseDto<IEnumerable<OrderHeaderDto>>>> Get(string? userId = "")
         {
+            var response = new ResponseDto<IEnumerable<OrderHeaderDto>>();
             try
             {
-                IEnumerable<OrderHeader> objList;
+                IEnumerable<OrderHeader> orders;
                 if (User.IsInRole(SD.RoleAdmin))
                 {
-                    objList = _db.OrderHeaders.Include(u => u.OrderDetails).OrderByDescending(u => u.OrderHeaderId).ToList();
+                    orders = _db.OrderHeaders.Include(u => u.OrderDetails).OrderByDescending(u => u.OrderHeaderId).ToList();
                 }
                 else
                 {
-                    objList = _db.OrderHeaders.Include(u => u.OrderDetails).Where(u => u.UserId == userId).OrderByDescending(u => u.OrderHeaderId).ToList();
+                    orders = _db.OrderHeaders.Include(u => u.OrderDetails).Where(u => u.UserId == userId).OrderByDescending(u => u.OrderHeaderId).ToList();
                 }
-                _response.Result = _mapper.Map<IEnumerable<OrderHeaderDto>>(objList);
+                response.Result = _mapper.Map<IEnumerable<OrderHeaderDto>>(orders);
             }
             catch (Exception ex)
             {
-                _response.IsSuccess = false;
-                _response.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _response;
+            return Ok(response);
         }
 
         [Authorize]
         [HttpGet("GetOrder/{id:int}")]
-        public ResponseDto? Get(int id)
+        public async Task<ActionResult<ResponseDto<OrderHeaderDto>>> Get(int id)
         {
+            var response = new ResponseDto<OrderHeaderDto>();
+
             try
             {
-                OrderHeader orderHeader = _db.OrderHeaders.Include(u => u.OrderDetails).First(u => u.OrderHeaderId == id);
-                _response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
+                OrderHeader order = _db.OrderHeaders.Include(u => u.OrderDetails).First(u => u.OrderHeaderId == id);
+                if (order == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Order not found";
+                    return NotFound(response);
+                }
+                response.Result = _mapper.Map<OrderHeaderDto>(order);
             }
             catch (Exception ex)
             {
-                _response.IsSuccess = false;
-                _response.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _response;
+
+            return Ok(response);
         }
 
         [Authorize]
         [HttpPost("CreateOrder")]
-        public async Task<ResponseDto> CreateOrder([FromBody] CartDto cartDto)
+        public async Task<ActionResult<ResponseDto<OrderHeaderDto>>> CreateOrder([FromBody] CartDto cartDto)
         {
+            var response = new ResponseDto<OrderHeaderDto>();
             try
             {
                 OrderHeaderDto orderHeaderDto = _mapper.Map<OrderHeaderDto>(cartDto.CartHeader);
@@ -87,19 +99,21 @@ namespace Mango.Services.OrderAPI.Controllers
                 await _db.SaveChangesAsync();
 
                 orderHeaderDto.OrderHeaderId = orderCreated.OrderHeaderId;
-                _response.Result = orderHeaderDto;
+                response.Result = orderHeaderDto;
             }
             catch (Exception ex)
             {
-                _response.IsSuccess = false;
-                _response.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _response;
+            return Ok(response);
         }
         [Authorize]
         [HttpPost("CreateStripeSession")]
-        public async Task<ResponseDto> CreateStripeSession([FromBody] StripeRequestDto stripeRequestDto)
+        public async Task<ActionResult<ResponseDto<StripeRequestDto>>> CreateStripeSession([FromBody] StripeRequestDto stripeRequestDto)
         {
+            var response = new ResponseDto<StripeRequestDto>();
             try
             {
 
@@ -146,25 +160,33 @@ namespace Mango.Services.OrderAPI.Controllers
                 OrderHeader orderHeader = _db.OrderHeaders.First(u => u.OrderHeaderId == stripeRequestDto.OrderHeader.OrderHeaderId);
                 orderHeader.StripeSessionId = session.Id;
                 _db.SaveChanges();
-                _response.Result = stripeRequestDto;
+                response.Result = stripeRequestDto;
 
             }
             catch (Exception ex)
             {
-                _response.Message = ex.Message;
-                _response.IsSuccess = false;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _response;
+
+            return Ok(response);
         }
         [Authorize]
         [HttpPost("ValidateStripeSession")]
-        public async Task<ResponseDto> ValidateStripeSession([FromBody] int orderHeaderId)
+        public async Task<ActionResult<ResponseDto<OrderHeaderDto>>> ValidateStripeSession([FromBody] int orderHeaderId)
         {
+            var response = new ResponseDto<OrderHeaderDto>();
             try
             {
 
-                OrderHeader orderHeader = _db.OrderHeaders.First(u => u.OrderHeaderId == orderHeaderId);
-
+                OrderHeader orderHeader = await _db.OrderHeaders.FirstOrDefaultAsync(u => u.OrderHeaderId == orderHeaderId);
+                if (orderHeader == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Order not found";
+                    return NotFound(response);
+                }
                 var service = new SessionService();
                 Session session = service.Get(orderHeader.StripeSessionId);
 
@@ -185,47 +207,77 @@ namespace Mango.Services.OrderAPI.Controllers
                     };
                     string topicName = _configuration.GetValue<string>("RabbitMQ:OrderCreatedQueue") ?? "OrderCreatedQueue"; 
                     await _messageBus.PublishMessage(rewardsDto, topicName);
-                    _response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
+                    response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
                 }
 
             }
             catch (Exception ex)
             {
-                _response.Message = ex.Message;
-                _response.IsSuccess = false;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _response;
+
+            return Ok(response);
         }
 
         [Authorize(Roles = SD.RoleAdmin)]
         [HttpPost("UpdateOrderStatus/{orderId:int}")]
-        public async Task<ResponseDto> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
+        public async Task<ActionResult<ResponseDto<string>>> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
         {
+            var response = new ResponseDto<string>();
             try
             {
-                OrderHeader orderHeader = _db.OrderHeaders.First(u => u.OrderHeaderId == orderId);
-                if (orderHeader != null)
+                var order = await _db.OrderHeaders.FirstOrDefaultAsync(o => o.OrderHeaderId == orderId);
+
+                if (order == null)
                 {
-                    if (newStatus == SD.Status_Cancelled)
+                    response.IsSuccess = false;
+                    response.Message = "Order not found";
+                    return NotFound(response);
+                }
+
+                // Refund لو cancelled
+                if (newStatus == SD.Status_Cancelled)
+                {
+                    if (string.IsNullOrEmpty(order.PaymentIntentId))
                     {
-                        var options = new RefundCreateOptions
+                        response.IsSuccess = false;
+                        response.Message = "No payment found to refund";
+                        return BadRequest(response);
+                    }
+
+                    try
+                    {
+                        var refundService = new RefundService();
+
+                        var refund = refundService.Create(new RefundCreateOptions
                         {
                             Reason = RefundReasons.RequestedByCustomer,
-                            PaymentIntent = orderHeader.PaymentIntentId
-                        };
-
-                        var service = new RefundService();
-                        Refund refund = service.Create(options);
+                            PaymentIntent = order.PaymentIntentId
+                        });
                     }
-                    orderHeader.Status = newStatus;
-                    _db.SaveChanges();
+                    catch (Exception stripeEx)
+                    {
+                        response.IsSuccess = false;
+                        response.Message = $"Refund failed: {stripeEx.Message}";
+                        return StatusCode(500, response);
+                    }
                 }
+
+                order.Status = newStatus;
+                await _db.SaveChangesAsync();
+
+                response.Result = "Order status updated successfully";
             }
             catch (Exception ex)
             {
-                _response.IsSuccess = false;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _response;
+
+            return Ok(response);
         }
     }
 }

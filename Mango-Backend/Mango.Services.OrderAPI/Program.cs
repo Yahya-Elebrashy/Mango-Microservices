@@ -17,12 +17,19 @@ namespace Mango.Services.OrderAPI
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
-
+            builder.Services.AddScoped<IMessageBus>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                return new MessageBus.MessageBus(
+                    hostname: config["RabbitMQ:Hostname"] ?? "localhost",
+                    username: config["RabbitMQ:Username"] ?? "guest",
+                    password: config["RabbitMQ:Password"] ?? "guest"
+                );
+            });
             IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
             builder.Services.AddSingleton(mapper);
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            builder.Services.AddSingleton<IMessageBus, MessageBus.MessageBus>();
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

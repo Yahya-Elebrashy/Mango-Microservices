@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using RabbitMQ.Client;
 using System.Reflection.PortableExecutable;
 
 namespace Mango.Services.ShoppingCartAPI.Controllers
@@ -23,11 +24,9 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         private readonly ICouponService _couponService;
         private readonly IMessageBus _messageBus;
         private readonly IConfiguration _configuration;
-        private ResponseDto _responseDto;
         public CartController(AppDbContext db, IMapper mapper, IProductService productService, ICouponService couponService, IMessageBus messageBus, IConfiguration configuration)
         {
             _db = db;
-            _responseDto = new();
             _mapper = mapper;
             _productService = productService;
             _messageBus = messageBus;
@@ -36,8 +35,9 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         }
 
         [HttpPost("CartUpsert")]
-        public async Task<ResponseDto> CartUpsert(CartDto CartDto)
+        public async Task<ActionResult<ResponseDto<CartDto>>> CartUpsert(CartDto CartDto)
         {
+            var response = new ResponseDto<CartDto>();
             try
             {
                 CartHeader cartHeaderFromDb = await _db.CartHeaders.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == CartDto.CartHeader.UserId);
@@ -75,57 +75,66 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                         await _db.SaveChangesAsync();
                     }
                 }
-                _responseDto.Result = CartDto;
+                response.Result = CartDto;
             }
             catch (Exception ex)
             {
-
-                _responseDto.Message = ex.Message.ToString();
-                _responseDto.IsSuccess = false;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
         [HttpDelete("RemoveCart/{cartDetailsId}")]
-        public async Task<ResponseDto> RemoveCart(int cartDetailsId)
+        public async Task<ActionResult<ResponseDto<bool>>> RemoveCart(int cartDetailsId)
         {
+            var response = new ResponseDto<bool>();
             try
             {
-                CartDetails cartDetails = _db.CartDetails.First(
+                CartDetails cartDetails = await _db.CartDetails.FirstOrDefaultAsync(
                     c => c.CartDetailsId == cartDetailsId);
-                int totalCountOfCartItem = _db.CartDetails.Where(
-                    c => c.CartHeaderId == cartDetails.CartHeaderId).Count();
+                if (cartDetails == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Item not found";
+                    return NotFound(response);
+                }
+                int totalCountOfCartItem = await _db.CartDetails.CountAsync(x => x.CartHeaderId == cartDetails.CartHeaderId);
                 _db.CartDetails.Remove(cartDetails);
                 if (totalCountOfCartItem == 1)
                 {
-                    var cartHeaderToRemove = _db.CartHeaders.FirstOrDefault(c => c.CartHeaderId == cartDetails.CartHeaderId);
-                    _db.CartHeaders.Remove(cartHeaderToRemove);
+                    var header = await _db.CartHeaders.FirstOrDefaultAsync(c => c.CartHeaderId == cartDetails.CartHeaderId);
+                    if (header != null)
+                        _db.CartHeaders.Remove(header);
                 }
                 await _db.SaveChangesAsync();
-                _responseDto.Result = true;
+                response.Result = true;
             }
             catch (Exception ex)
             {
-
-                _responseDto.Message = ex.Message.ToString();
-                _responseDto.IsSuccess = false;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
         [HttpGet("GetCart/{userId}")]
-        public async Task<ResponseDto> GetCart(string userId)
-        
+        public async Task<ActionResult<ResponseDto<CartDto>>> GetCart(string userId)
         {
+            var response = new ResponseDto<CartDto>();
             try
             {
-                var cartHeaderFromDb = _db.CartHeaders.FirstOrDefault(c => c.UserId == userId);
-                if (cartHeaderFromDb == null)
+                var header = await _db.CartHeaders.FirstOrDefaultAsync(c => c.UserId == userId);
+                if (header == null)
                 {
-                    _responseDto.Result = new CartDto();
-                    return _responseDto;
+                    response.Result = new CartDto();
+                    return Ok(response);
                 }
                 CartDto cartDto = new CartDto
                 {
-                    CartHeader = _mapper.Map<CartHeaderDto>(cartHeaderFromDb)
+                    CartHeader = _mapper.Map<CartHeaderDto>(header)
                 };
                 cartDto.CartDetails = _mapper.Map<IEnumerable<CartDetailsDto>>(_db.CartDetails.Where(c => c.CartHeaderId == cartDto.CartHeader.CartHeaderId));
                 var products = await _productService.GetProductsAsync();
@@ -143,72 +152,111 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                         cartDto.CartHeader.Discount = coupon.DiscountAmount;
                     }
                 }
-                _responseDto.Result = cartDto;
+                response.Result = cartDto;
             }
             catch (Exception ex)
             {
-
-                _responseDto.Message = ex.Message.ToString();
-                _responseDto.IsSuccess = false;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
         [HttpPost("ApplyCoupon")]
-        public async Task<ResponseDto> ApplyCoupon([FromBody] CartDto cartDto)
+        public async Task<ActionResult<ResponseDto<bool>>> ApplyCoupon([FromBody] CartDto cartDto)
         {
+            var response = new ResponseDto<bool>();
             try
             {
-                var cartFromDb = await _db.CartHeaders.FirstAsync(u => u.UserId == cartDto.CartHeader.UserId);
+                if (cartDto?.CartHeader == null || string.IsNullOrEmpty(cartDto.CartHeader.UserId))
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Invalid request";
+                    return BadRequest(response);
+                }
+                var cartFromDb = await _db.CartHeaders.FirstOrDefaultAsync(u => u.UserId == cartDto.CartHeader.UserId);
+                if (cartFromDb == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Cart not found";
+                    return NotFound(response);
+                }
+                var coupon = await _couponService.GetCouponAsync(cartDto.CartHeader.CouponCode);
+
+                if (coupon == null || string.IsNullOrEmpty(coupon.CouponCode))
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Invalid coupon code";
+                    return BadRequest(response);
+                }
                 cartFromDb.CouponCode = cartDto.CartHeader.CouponCode;
                 _db.CartHeaders.Update(cartFromDb);
                 await _db.SaveChangesAsync();
-                _responseDto.Result = true;
+                response.Result = true;
+                response.Message = "Coupon applied successfully";
             }
             catch (Exception ex)
             {
-
-                _responseDto.Message = ex.Message.ToString();
-                _responseDto.IsSuccess = false;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+
+            return Ok(response);
         }
         [HttpPost("RemoveCoupon")]
-        public async Task<ResponseDto> RemoveCoupon([FromBody] CartDto cartDto)
+        public async Task<ActionResult<ResponseDto<bool>>> RemoveCoupon([FromBody] CartDto cartDto)
         {
+            var response = new ResponseDto<bool>();
             try
             {
-                var cartFromDb = await _db.CartHeaders.FirstAsync(u => u.UserId == cartDto.CartHeader.UserId);
+                if (cartDto?.CartHeader == null || string.IsNullOrEmpty(cartDto.CartHeader.UserId))
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Invalid request";
+                    return BadRequest(response);
+                }
+                var cartFromDb = await _db.CartHeaders.FirstOrDefaultAsync(u => u.UserId == cartDto.CartHeader.UserId);
+                if (cartFromDb == null)
+                {
+                    response.IsSuccess = false;
+                    response.Message = "Cart not found";
+                    return NotFound(response);
+                }
                 cartFromDb.CouponCode = "";
-                _db.CartHeaders.Update(cartFromDb);
                 await _db.SaveChangesAsync();
-                _responseDto.Result = true;
+                response.Result = true;
+                response.Message = "Coupon removed successfully";
             }
             catch (Exception ex)
             {
-
-                _responseDto.Message = ex.Message.ToString();
-                _responseDto.IsSuccess = false;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+            return Ok(response);
         }
         [HttpPost("EmailCartRequest")]
-        public async Task<ResponseDto> EmailCartRequest([FromBody] CartDto cartDto)
+        public async Task<ActionResult<ResponseDto<bool>>> EmailCartRequest([FromBody] CartDto cartDto)
         {
+            var response = new ResponseDto<bool>();
             try
             {
                 // Publish message to RabbitMQ
                 var queueName = _configuration.GetValue<string>("RabbitMQ:EmailQueue") ?? "emailcartqueue";
                 await _messageBus.PublishMessage(cartDto, queueName);
 
-                _responseDto.Result = true;
-                _responseDto.Message = "Email request sent to queue successfully";
+                response.Result = true;
+                response.Message = "Email request sent to queue successfully";
             }
             catch (Exception ex)
             {
-                _responseDto.IsSuccess = false;
-                _responseDto.Message = ex.Message;
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return StatusCode(500, response);
             }
-            return _responseDto;
+            return Ok(response);
         }
 
     }
