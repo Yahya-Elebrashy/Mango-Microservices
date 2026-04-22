@@ -3,6 +3,7 @@ using Azure;
 using Mango.Services.ProductAPI.Constants;
 using Mango.Services.ProductAPI.Data;
 using Mango.Services.ProductAPI.Models.Dto;
+using Mango.Services.ProductAPI.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,22 +16,22 @@ namespace Mango.Services.ProductAPI.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly AppDbContext _db;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ProductController(AppDbContext db, IMapper mapper)
+        public ProductController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _db = db;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public ResponseDto<IEnumerable<ProductDto>> Get()
+        public async Task<ResponseDto<IEnumerable<ProductDto>>> Get()
         {
             var response = new ResponseDto<IEnumerable<ProductDto>>();
             try
             {
-                var products = _db.Products.ToList();
+                var products = await _unitOfWork.Product.GetAllAsync();
                 response.Result = _mapper.Map<IEnumerable<ProductDto>>(products);
             }
             catch (Exception ex)
@@ -42,12 +43,12 @@ namespace Mango.Services.ProductAPI.Controllers
         }
        
         [HttpGet("{id:int}")]
-        public ResponseDto<ProductDto> Get(int id)
+        public async Task<ResponseDto<ProductDto>> Get(int id)
         {
             var response = new ResponseDto<ProductDto>();
             try
             {
-                var product = _db.Products.FirstOrDefault(x => x.ProductId == id);
+                var product = await _unitOfWork.Product.GetAsync(p => p.ProductId == id);
 
                 if (product == null)
                 {
@@ -68,14 +69,16 @@ namespace Mango.Services.ProductAPI.Controllers
         
         [Authorize(Roles = SD.RoleAdmin)]
         [HttpPost]
-        public ResponseDto<ProductDto> Post(ProductDto productDto)
+        public async Task<ResponseDto<ProductDto>> Post(ProductDto productDto)
         {
             var response = new ResponseDto<ProductDto>();
             try
             {
                 Product product = _mapper.Map<Product>(productDto);
-                _db.Products.Add(product);
-                _db.SaveChanges();
+
+                await _unitOfWork.Product.CreateAsync(product);
+                await _unitOfWork.SaveAsync();
+
                 if (productDto.Image != null)
                 {
 
@@ -103,8 +106,9 @@ namespace Mango.Services.ProductAPI.Controllers
                 {
                     product.ImageUrl = "https://placehold.co/600x400";
                 }
-                _db.Products.Update(product);
-                _db.SaveChanges();
+                await _unitOfWork.Product.UpdateAsync(product);
+                await _unitOfWork.SaveAsync();
+
                 response.Result = _mapper.Map<ProductDto>(product);
             }
             catch (Exception ex)
@@ -117,12 +121,12 @@ namespace Mango.Services.ProductAPI.Controllers
         
         [Authorize(Roles = SD.RoleAdmin)]
         [HttpPut]
-        public ResponseDto<ProductDto> Update(ProductDto productDto)
+        public async Task<ResponseDto<ProductDto>> Update(ProductDto productDto)
         {
             var response = new ResponseDto<ProductDto>();
             try
             {
-                var product = _db.Products.FirstOrDefault(x => x.ProductId == productDto.ProductId);
+                var product = await _unitOfWork.Product.GetAsync(x => x.ProductId == productDto.ProductId);
 
                 if (product == null)
                 {
@@ -154,8 +158,9 @@ namespace Mango.Services.ProductAPI.Controllers
                     product.ImageUrl = baseUrl + "/ProductImages/" + fileName;
                     product.ImageLocalPath = filePath;
                 }
-                _db.Products.Update(product);
-                _db.SaveChanges();
+                await _unitOfWork.Product.UpdateAsync(product);
+                await _unitOfWork.SaveAsync();
+
                 response.Result = _mapper.Map<ProductDto>(product);
             }
             catch (Exception ex)
@@ -168,13 +173,12 @@ namespace Mango.Services.ProductAPI.Controllers
 
         [HttpDelete("{id:int}")]
         [Authorize(Roles = SD.RoleAdmin)]
-        public ResponseDto<string> Delete(int id)
+        public async Task<ResponseDto<string>> Delete(int id)
         {
             var response = new ResponseDto<string>();
             try
             {
-                var product = _db.Products.FirstOrDefault(x => x.ProductId == id);
-
+                var product = await _unitOfWork.Product.GetAsync(p => p.ProductId == id);
                 if (product == null)
                 {
                     response.IsSuccess = false;
@@ -190,8 +194,10 @@ namespace Mango.Services.ProductAPI.Controllers
                         file.Delete();
                     }
                 }
-                _db.Remove(product);
-                _db.SaveChanges();
+
+                await _unitOfWork.Product.RemoveAsync(product);
+                await _unitOfWork.SaveAsync();
+
                 response.Result = "Deleted successfully";
             }
             catch (Exception ex)

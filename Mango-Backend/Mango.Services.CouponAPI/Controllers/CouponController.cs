@@ -3,6 +3,7 @@ using Mango.Services.CouponAPI.Constants;
 using Mango.Services.CouponAPI.Data;
 using Mango.Services.CouponAPI.Models;
 using Mango.Services.CouponAPI.Models.Dto;
+using Mango.Services.CouponAPI.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,23 +14,22 @@ namespace Mango.Services.CouponAPI.Controllers
     [ApiController]
     public class CouponController : ControllerBase
     {
-        private readonly AppDbContext _db;
         private readonly IMapper _mapper;
-
-        public CouponController(AppDbContext db, IMapper mapper)
+        private readonly IUnitOfWork _unitOfWork;
+        public CouponController(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _db = db;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
         [Authorize]
         [HttpGet]
-        public ActionResult<ResponseDto<IEnumerable<CouponDto>>> Get()
+        public async Task<ActionResult<ResponseDto<IEnumerable<CouponDto>>>> Get()
         {
             var response = new ResponseDto<IEnumerable<CouponDto>>();
 
             try
             {
-                var coupons = _db.Coupons.ToList();
+                var coupons = await _unitOfWork.Coupon.GetAllAsync();
                 response.Result = _mapper.Map<IEnumerable<CouponDto>>(coupons);
             }
             catch (Exception ex)
@@ -43,13 +43,13 @@ namespace Mango.Services.CouponAPI.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult<ResponseDto<Coupon>> Get(int id)
+        public async Task<ActionResult<ResponseDto<Coupon>>> Get(int id)
         {
             var response = new ResponseDto<Coupon>();
 
             try
             {
-                var coupon = _db.Coupons.FirstOrDefault(x => x.CouponId == id);
+                var coupon = await _unitOfWork.Coupon.GetAsync(c => c.CouponId == id);
 
                 if (coupon == null)
                 {
@@ -71,14 +71,13 @@ namespace Mango.Services.CouponAPI.Controllers
         }
 
         [HttpGet("GetByCode/{code}")]
-        public ActionResult<ResponseDto<CouponDto>> GetByCode(string code)
+        public async Task<ActionResult<ResponseDto<CouponDto>>> GetByCode(string code)
         {
             var response = new ResponseDto<CouponDto>();
 
             try
             {
-                var coupon = _db.Coupons
-                    .FirstOrDefault(x => x.CouponCode.ToLower() == code.ToLower());
+                var coupon = await _unitOfWork.Coupon.GetByCodeAsync(code);
 
                 if (coupon == null)
                 {
@@ -101,7 +100,7 @@ namespace Mango.Services.CouponAPI.Controllers
 
         [HttpPost]
         [Authorize(Roles = SD.RoleAdmin)]
-        public ActionResult<ResponseDto<CouponDto>> Post(CouponDto couponDto)
+        public async Task<ActionResult<ResponseDto<CouponDto>>> Post(CouponDto couponDto)
         {
             var response = new ResponseDto<CouponDto>();
 
@@ -109,8 +108,8 @@ namespace Mango.Services.CouponAPI.Controllers
             {
                 var coupon = _mapper.Map<Coupon>(couponDto);
 
-                _db.Coupons.Add(coupon);
-                _db.SaveChanges();
+                await _unitOfWork.Coupon.CreateAsync(coupon);
+                await _unitOfWork.SaveAsync();
 
                 // Stripe
                 try
@@ -146,13 +145,13 @@ namespace Mango.Services.CouponAPI.Controllers
 
         [Authorize(Roles = SD.RoleAdmin)]
         [HttpDelete("{id:int}")]
-        public ActionResult<ResponseDto<string>> Delete(int id)
+        public async Task<ActionResult<ResponseDto<string>>> Delete(int id)
         {
             var response = new ResponseDto<string>();
 
             try
             {
-                var coupon = _db.Coupons.FirstOrDefault(x => x.CouponId == id);
+                var coupon = await _unitOfWork.Coupon.GetAsync(c => c.CouponId == id);
 
                 if (coupon == null)
                 {
@@ -161,8 +160,8 @@ namespace Mango.Services.CouponAPI.Controllers
                     return NotFound(response);
                 }
 
-                _db.Coupons.Remove(coupon);
-                _db.SaveChanges();
+                await _unitOfWork.Coupon.RemoveAsync(coupon);
+                await _unitOfWork.SaveAsync();
 
                 // Stripe
                 try

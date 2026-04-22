@@ -2,6 +2,7 @@
 using Mango.Services.OrderAPI.Data;
 using Mango.Services.OrderAPI.Models;
 using Mango.Services.OrderAPI.Models.Dto;
+using Mango.Services.OrderAPI.UnitOfWork;
 using Mango.Services.OrderAPI.Utility;
 using MessageBus;
 using Microsoft.AspNetCore.Authorization;
@@ -17,14 +18,14 @@ namespace Mango.Services.OrderAPI.Controllers
     [ApiController]
     public class OrderController : ControllerBase
     {
+        private readonly IUnitOfWork _unitOfWork;
         private IMapper _mapper;
-        private readonly AppDbContext _db;
         private readonly IConfiguration _configuration;
         private readonly IMessageBus _messageBus;
 
-        public OrderController(AppDbContext db, IMapper mapper, IConfiguration configuration, IMessageBus messageBus)
+        public OrderController(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IMessageBus messageBus)
         {
-            _db = db;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
             _messageBus = messageBus;
             _configuration = configuration;
@@ -39,11 +40,11 @@ namespace Mango.Services.OrderAPI.Controllers
                 IEnumerable<OrderHeader> orders;
                 if (User.IsInRole(SD.RoleAdmin))
                 {
-                    orders = _db.OrderHeaders.Include(u => u.OrderDetails).OrderByDescending(u => u.OrderHeaderId).ToList();
+                    orders = await _unitOfWork.Order.GetAllWithDetailsAsync();
                 }
                 else
                 {
-                    orders = _db.OrderHeaders.Include(u => u.OrderDetails).Where(u => u.UserId == userId).OrderByDescending(u => u.OrderHeaderId).ToList();
+                    orders = await _unitOfWork.Order.GetByUserIdAsync(userId!);
                 }
                 response.Result = _mapper.Map<IEnumerable<OrderHeaderDto>>(orders);
             }
@@ -64,7 +65,7 @@ namespace Mango.Services.OrderAPI.Controllers
 
             try
             {
-                OrderHeader order = _db.OrderHeaders.Include(u => u.OrderDetails).First(u => u.OrderHeaderId == id);
+                OrderHeader order = await _unitOfWork.Order.GetWithDetailsAsync(id);
                 if (order == null)
                 {
                     response.IsSuccess = false;
@@ -95,10 +96,11 @@ namespace Mango.Services.OrderAPI.Controllers
                 orderHeaderDto.Status = SD.Status_Pending;
                 orderHeaderDto.OrderDetails = _mapper.Map<IEnumerable<OrderDetailsDto>>(cartDto.CartDetails);
                 orderHeaderDto.OrderTotal = Math.Round(orderHeaderDto.OrderTotal, 2);
-                OrderHeader orderCreated = _db.OrderHeaders.Add(_mapper.Map<OrderHeader>(orderHeaderDto)).Entity;
-                await _db.SaveChangesAsync();
+                var orderHeader = _mapper.Map<OrderHeader>(orderHeaderDto);
+                await _unitOfWork.Order.CreateAsync(orderHeader);
+                await _unitOfWork.SaveAsync();
 
-                orderHeaderDto.OrderHeaderId = orderCreated.OrderHeaderId;
+                orderHeaderDto.OrderHeaderId = orderHeader.OrderHeaderId;
                 response.Result = orderHeaderDto;
             }
             catch (Exception ex)
@@ -157,9 +159,13 @@ namespace Mango.Services.OrderAPI.Controllers
                 var service = new SessionService();
                 Session session = service.Create(options);
                 stripeRequestDto.StripeSessionUrl = session.Url;
-                OrderHeader orderHeader = _db.OrderHeaders.First(u => u.OrderHeaderId == stripeRequestDto.OrderHeader.OrderHeaderId);
-                orderHeader.StripeSessionId = session.Id;
-                _db.SaveChanges();
+                var order = await _unitOfWork.Order.GetAsync(o => o.OrderHeaderId == stripeRequestDto.OrderHeader.OrderHeaderId);
+                if (order is not null)
+                {
+                    order.StripeSessionId = session.Id;
+                    await _unitOfWork.Order.UpdateAsync(order);
+                    await _unitOfWork.SaveAsync();
+                }
                 response.Result = stripeRequestDto;
 
             }
@@ -180,7 +186,7 @@ namespace Mango.Services.OrderAPI.Controllers
             try
             {
 
-                OrderHeader orderHeader = await _db.OrderHeaders.FirstOrDefaultAsync(u => u.OrderHeaderId == orderHeaderId);
+                OrderHeader orderHeader = await _unitOfWork.Order.GetAsync(o => o.OrderHeaderId == orderHeaderId);
                 if (orderHeader == null)
                 {
                     response.IsSuccess = false;
@@ -198,7 +204,8 @@ namespace Mango.Services.OrderAPI.Controllers
                     //then payment was successful
                     orderHeader.PaymentIntentId = paymentIntent.Id;
                     orderHeader.Status = SD.Status_Approved;
-                    _db.SaveChanges();
+                    await _unitOfWork.Order.UpdateAsync(orderHeader);
+                    await _unitOfWork.SaveAsync();
                     RewardsDto rewardsDto = new()
                     {
                         OrderId = orderHeader.OrderHeaderId,
@@ -228,7 +235,7 @@ namespace Mango.Services.OrderAPI.Controllers
             var response = new ResponseDto<string>();
             try
             {
-                var order = await _db.OrderHeaders.FirstOrDefaultAsync(o => o.OrderHeaderId == orderId);
+                var order = await _unitOfWork.Order.GetAsync(o => o.OrderHeaderId == orderId);
 
                 if (order == null)
                 {
@@ -266,8 +273,8 @@ namespace Mango.Services.OrderAPI.Controllers
                 }
 
                 order.Status = newStatus;
-                await _db.SaveChangesAsync();
-
+                await _unitOfWork.Order.UpdateAsync(order);
+                await _unitOfWork.SaveAsync();
                 response.Result = "Order status updated successfully";
             }
             catch (Exception ex)

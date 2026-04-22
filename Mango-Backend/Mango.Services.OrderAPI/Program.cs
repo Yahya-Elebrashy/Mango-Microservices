@@ -1,6 +1,9 @@
 using AutoMapper;
 using Mango.Services.OrderAPI.Data;
 using Mango.Services.OrderAPI.Extensions;
+using Mango.Services.OrderAPI.Repositories;
+using Mango.Services.OrderAPI.Repositories.IRepository;
+using Mango.Services.OrderAPI.UnitOfWork;
 using MessageBus;
 using Microsoft.EntityFrameworkCore;
 namespace Mango.Services.OrderAPI
@@ -29,6 +32,10 @@ namespace Mango.Services.OrderAPI
             IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
             builder.Services.AddSingleton(mapper);
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            // Repository & UnitOfWork
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+            builder.Services.AddScoped<IUnitOfWork, Mango.Services.OrderAPI.UnitOfWork.UnitOfWork>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

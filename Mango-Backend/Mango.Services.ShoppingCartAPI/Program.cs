@@ -1,11 +1,14 @@
 using AutoMapper;
 using Mango.Services.ShoppingCartAPI.Data;
 using Mango.Services.ShoppingCartAPI.Extensions;
+using Mango.Services.ShoppingCartAPI.Repositories;
+using Mango.Services.ShoppingCartAPI.Repositories.IRepository;
 using Mango.Services.ShoppingCartAPI.Service;
 using Mango.Services.ShoppingCartAPI.Service.IService;
+using Mango.Services.ShoppingCartAPI.UnitOfWork;
+using MessageBus;
 using MessageBus;
 using Microsoft.EntityFrameworkCore;
-using MessageBus;
 namespace Mango.Services.ShoppingCartAPI
 {
     public class Program
@@ -37,6 +40,12 @@ namespace Mango.Services.ShoppingCartAPI
             new Uri(builder.Configuration["ServiceUrls:ProductAPI"]));
             builder.Services.AddHttpClient("Coupon", u => u.BaseAddress =
             new Uri(builder.Configuration["ServiceUrls:CouponAPI"]));
+
+            // Repository & UnitOfWork
+            builder.Services.AddScoped<ICartHeaderRepository, CartHeaderRepository>();
+            builder.Services.AddScoped<ICartDetailsRepository, CartDetailsRepository>();
+            builder.Services.AddScoped<IUnitOfWork, Mango.Services.ShoppingCartAPI.UnitOfWork.UnitOfWork>();
+
             builder.Services.AddControllers();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<ICouponService, CouponService>();
