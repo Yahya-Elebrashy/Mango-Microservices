@@ -16,7 +16,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         }
 
         [HttpGet("GetCart/{userId}")]
-        public async Task<ActionResult<ResponseDto<CartDto>>> GetCart(string userId)
+        public async Task<IActionResult> GetCart(string userId)
         {
             return Ok(new ResponseDto<CartDto>
             {
@@ -25,7 +25,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         }
 
         [HttpPost("CartUpsert")]
-        public async Task<ActionResult<ResponseDto<CartDto>>> CartUpsert(CartDto cartDto)
+        public async Task<IActionResult> CartUpsert(CartDto cartDto)
         {
             return Ok(new ResponseDto<CartDto>
             {
@@ -34,14 +34,14 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         }
 
         [HttpDelete("RemoveCart/{cartDetailsId}")]
-        public async Task<ActionResult<ResponseDto<bool>>> RemoveCart(int cartDetailsId)
+        public async Task<IActionResult> RemoveCart(int cartDetailsId)
         {
             await _cartService.RemoveCartItemAsync(cartDetailsId);
-            return Ok(new ResponseDto<bool> { Result = true });
+            return Ok(new ResponseDto<string> { Result = "Item removed successfully" });
         }
 
         [HttpPost("ApplyCoupon")]
-        public async Task<ActionResult<ResponseDto<bool>>> ApplyCoupon([FromBody] CartDto cartDto)
+        public async Task<IActionResult> ApplyCoupon([FromBody] CartDto cartDto)
         {
             if (cartDto?.CartHeader == null || string.IsNullOrEmpty(cartDto.CartHeader.UserId))
                 return BadRequest(new ResponseDto<bool> { IsSuccess = false, Message = "Invalid request" });
@@ -51,7 +51,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         }
 
         [HttpPost("RemoveCoupon")]
-        public async Task<ActionResult<ResponseDto<bool>>> RemoveCoupon([FromBody] CartDto cartDto)
+        public async Task<IActionResult> RemoveCoupon([FromBody] CartDto cartDto)
         {
             if (cartDto?.CartHeader == null || string.IsNullOrEmpty(cartDto.CartHeader.UserId))
                 return BadRequest(new ResponseDto<bool> { IsSuccess = false, Message = "Invalid request" });
@@ -61,7 +61,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         }
 
         [HttpPost("EmailCartRequest")]
-        public async Task<ActionResult<ResponseDto<bool>>> EmailCartRequest([FromBody] CartDto cartDto)
+        public async Task<IActionResult> EmailCartRequest([FromBody] CartDto cartDto)
         {
             await _cartService.EmailCartRequestAsync(cartDto);
             return Ok(new ResponseDto<bool> { Result = true, Message = "Email request sent to queue successfully" });

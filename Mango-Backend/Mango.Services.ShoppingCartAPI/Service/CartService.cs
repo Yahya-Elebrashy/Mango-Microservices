@@ -71,7 +71,7 @@ namespace Mango.Services.ShoppingCartAPI.Service
         public async Task<CartDto> UpsertCartAsync(CartDto cartDto)
         {
             var cartHeaderFromDb = await _unitOfWork.CartHeader
-                .GetAsync(c => c.UserId == cartDto.CartHeader.UserId);
+           .GetAsync(c => c.UserId == cartDto.CartHeader.UserId);
 
             if (cartHeaderFromDb == null)
             {
@@ -80,8 +80,10 @@ namespace Mango.Services.ShoppingCartAPI.Service
                 await _unitOfWork.SaveAsync();
 
                 cartDto.CartDetails.First().CartHeaderId = newHeader.CartHeaderId;
+
                 await _unitOfWork.CartDetails.CreateAsync(
                     _mapper.Map<CartDetails>(cartDto.CartDetails.First()));
+
                 await _unitOfWork.SaveAsync();
             }
             else
@@ -93,17 +95,16 @@ namespace Mango.Services.ShoppingCartAPI.Service
                 if (cartDetailsFromDb == null)
                 {
                     cartDto.CartDetails.First().CartHeaderId = cartHeaderFromDb.CartHeaderId;
+
                     await _unitOfWork.CartDetails.CreateAsync(
                         _mapper.Map<CartDetails>(cartDto.CartDetails.First()));
                 }
                 else
                 {
-                    cartDto.CartDetails.First().Count += cartDetailsFromDb.Count;
-                    cartDto.CartDetails.First().CartHeaderId = cartDetailsFromDb.CartHeaderId;
-                    cartDto.CartDetails.First().CartDetailsId = cartDetailsFromDb.CartDetailsId;
-                    await _unitOfWork.CartDetails.UpdateAsync(
-                        _mapper.Map<CartDetails>(cartDto.CartDetails.First()));
+                    cartDetailsFromDb.Count += cartDto.CartDetails.First().Count;
+                    await _unitOfWork.CartDetails.UpdateAsync(cartDetailsFromDb);
                 }
+
                 await _unitOfWork.SaveAsync();
             }
 

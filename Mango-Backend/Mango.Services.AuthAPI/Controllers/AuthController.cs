@@ -1,8 +1,5 @@
-﻿using Azure;
-using Azure.Core;
-using Mango.Services.AuthAPI.Models.Dto;
+﻿using Mango.Services.AuthAPI.Models.Dto;
 using Mango.Services.AuthAPI.Service.IService;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Mango.Services.AuthAPI.Controllers
@@ -19,10 +16,9 @@ namespace Mango.Services.AuthAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<ResponseDto<string>>> Register([FromBody] RegisterationRequestDto request)
+        public async Task<IActionResult> Register([FromBody] RegisterationRequestDto request)
         {
             var errorMessage = await _authService.Register(request);
-
             if (!string.IsNullOrEmpty(errorMessage))
                 return BadRequest(new ResponseDto<string> { IsSuccess = false, Message = errorMessage });
 
@@ -30,25 +26,19 @@ namespace Mango.Services.AuthAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<ResponseDto<LoginResponseDto>>> Login([FromBody] LoginRequestDto request)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var loginResponse = await _authService.Login(request);
-
             if (loginResponse == null || loginResponse.User == null)
-                return BadRequest(new ResponseDto<LoginResponseDto>
-                {
-                    IsSuccess = false,
-                    Message = "Username or Password is incorrect"
-                });
+                return Unauthorized(new ResponseDto<string> { IsSuccess = false, Message = "Username or Password is incorrect" });
 
             return Ok(new ResponseDto<LoginResponseDto> { Result = loginResponse });
         }
 
         [HttpPost("AssignRole")]
-        public async Task<ActionResult<ResponseDto<string>>> AssignRole([FromBody] RegisterationRequestDto request)
+        public async Task<IActionResult> AssignRole([FromBody] RegisterationRequestDto request)
         {
             var success = await _authService.AssignRole(request.Email, request.Role.ToUpper());
-
             if (!success)
                 return BadRequest(new ResponseDto<string> { IsSuccess = false, Message = "Error assigning role" });
 

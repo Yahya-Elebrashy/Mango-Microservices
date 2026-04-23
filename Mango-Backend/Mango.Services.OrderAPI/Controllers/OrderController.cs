@@ -19,7 +19,7 @@ namespace Mango.Services.OrderAPI.Controllers
 
         [Authorize]
         [HttpGet("GetOrders")]
-        public async Task<ActionResult<ResponseDto<IEnumerable<OrderHeaderDto>>>> Get(string? userId = "")
+        public async Task<IActionResult> Get(string? userId = "")
         {
             return Ok(new ResponseDto<IEnumerable<OrderHeaderDto>>
             {
@@ -29,19 +29,17 @@ namespace Mango.Services.OrderAPI.Controllers
 
         [Authorize]
         [HttpGet("GetOrder/{id:int}")]
-        public async Task<ActionResult<ResponseDto<OrderHeaderDto>>> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             var order = await _orderService.GetOrderByIdAsync(id);
-
             if (order == null)
                 return NotFound(new ResponseDto<OrderHeaderDto> { IsSuccess = false, Message = "Order not found" });
-
             return Ok(new ResponseDto<OrderHeaderDto> { Result = order });
         }
 
         [Authorize]
         [HttpPost("CreateOrder")]
-        public async Task<ActionResult<ResponseDto<OrderHeaderDto>>> CreateOrder([FromBody] CartDto cartDto)
+        public async Task<IActionResult> CreateOrder([FromBody] CartDto cartDto)
         {
             return Ok(new ResponseDto<OrderHeaderDto>
             {
@@ -51,7 +49,7 @@ namespace Mango.Services.OrderAPI.Controllers
 
         [Authorize]
         [HttpPost("CreateStripeSession")]
-        public async Task<ActionResult<ResponseDto<StripeRequestDto>>> CreateStripeSession([FromBody] StripeRequestDto stripeRequestDto)
+        public async Task<IActionResult> CreateStripeSession([FromBody] StripeRequestDto stripeRequestDto)
         {
             return Ok(new ResponseDto<StripeRequestDto>
             {
@@ -61,7 +59,7 @@ namespace Mango.Services.OrderAPI.Controllers
 
         [Authorize]
         [HttpPost("ValidateStripeSession")]
-        public async Task<ActionResult<ResponseDto<OrderHeaderDto>>> ValidateStripeSession([FromBody] int orderHeaderId)
+        public async Task<IActionResult> ValidateStripeSession([FromBody] int orderHeaderId)
         {
             return Ok(new ResponseDto<OrderHeaderDto>
             {
@@ -71,7 +69,7 @@ namespace Mango.Services.OrderAPI.Controllers
 
         [Authorize(Roles = SD.RoleAdmin)]
         [HttpPost("UpdateOrderStatus/{orderId:int}")]
-        public async Task<ActionResult<ResponseDto<string>>> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
         {
             await _orderService.UpdateOrderStatusAsync(orderId, newStatus);
             return Ok(new ResponseDto<string> { Result = "Order status updated successfully" });

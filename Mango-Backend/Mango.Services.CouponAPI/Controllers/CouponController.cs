@@ -19,7 +19,7 @@ namespace Mango.Services.CouponAPI.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<CouponDto>>>> Get()
+        public async Task<IActionResult> Get()
         {
             return Ok(new ResponseDto<IEnumerable<CouponDto>>
             {
@@ -28,30 +28,26 @@ namespace Mango.Services.CouponAPI.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<ResponseDto<CouponDto>>> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             var coupon = await _couponService.GetCouponByIdAsync(id);
-
             if (coupon == null)
                 return NotFound(new ResponseDto<CouponDto> { IsSuccess = false, Message = "Coupon not found" });
-
             return Ok(new ResponseDto<CouponDto> { Result = coupon });
         }
 
         [HttpGet("GetByCode/{code}")]
-        public async Task<ActionResult<ResponseDto<CouponDto>>> GetByCode(string code)
+        public async Task<IActionResult> GetByCode(string code)
         {
             var coupon = await _couponService.GetCouponByCodeAsync(code);
-
             if (coupon == null)
                 return NotFound(new ResponseDto<CouponDto> { IsSuccess = false, Message = "Coupon not found" });
-
             return Ok(new ResponseDto<CouponDto> { Result = coupon });
         }
 
         [HttpPost]
         [Authorize(Roles = SD.RoleAdmin)]
-        public async Task<ActionResult<ResponseDto<CouponDto>>> Post(CouponDto couponDto)
+        public async Task<IActionResult> Post(CouponDto couponDto)
         {
             return Ok(new ResponseDto<CouponDto>
             {
@@ -61,7 +57,7 @@ namespace Mango.Services.CouponAPI.Controllers
 
         [Authorize(Roles = SD.RoleAdmin)]
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<ResponseDto<string>>> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             await _couponService.DeleteCouponAsync(id);
             return Ok(new ResponseDto<string> { Result = "Deleted successfully" });
