@@ -21,80 +21,38 @@ namespace Mango.Services.AuthAPI.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<ResponseDto<string>>> Register([FromBody] RegisterationRequestDto request)
         {
-            var response = new ResponseDto<string>();
+            var errorMessage = await _authService.Register(request);
 
-            try
-            {
-                var errorMessage = await _authService.Register(request);
+            if (!string.IsNullOrEmpty(errorMessage))
+                return BadRequest(new ResponseDto<string> { IsSuccess = false, Message = errorMessage });
 
-                if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    response.IsSuccess = false;
-                    response.Message = errorMessage;
-                    return BadRequest(response);
-                }
-
-                response.Result = "User registered successfully";
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                return StatusCode(500, response);
-            }
+            return Ok(new ResponseDto<string> { Result = "User registered successfully" });
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<ResponseDto<LoginResponseDto>>> Login([FromBody] LoginRequestDto request)
         {
-            var response = new ResponseDto<LoginResponseDto>();
-            try
-            {
-                var loginResponse = await _authService.Login(request);
+            var loginResponse = await _authService.Login(request);
 
-                if (loginResponse == null || loginResponse.User == null)
+            if (loginResponse == null || loginResponse.User == null)
+                return BadRequest(new ResponseDto<LoginResponseDto>
                 {
-                    response.IsSuccess = false;
-                    response.Message = "Username or Password is incorrect";
-                    return BadRequest(response);
-                }
+                    IsSuccess = false,
+                    Message = "Username or Password is incorrect"
+                });
 
-                response.Result = loginResponse;
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                return StatusCode(500, response);
-            }
+            return Ok(new ResponseDto<LoginResponseDto> { Result = loginResponse });
         }
+
         [HttpPost("AssignRole")]
         public async Task<ActionResult<ResponseDto<string>>> AssignRole([FromBody] RegisterationRequestDto request)
         {
-            var response = new ResponseDto<string>();
+            var success = await _authService.AssignRole(request.Email, request.Role.ToUpper());
 
-            try
-            {
-                var success = await _authService.AssignRole(request.Email, request.Role.ToUpper());
+            if (!success)
+                return BadRequest(new ResponseDto<string> { IsSuccess = false, Message = "Error assigning role" });
 
-                if (!success)
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Error assigning role";
-                    return BadRequest(response);
-                }
-
-                response.Result = "Role assigned successfully";
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-                return StatusCode(500, response);
-            }
+            return Ok(new ResponseDto<string> { Result = "Role assigned successfully" });
         }
     }
 }

@@ -6,6 +6,7 @@ using Mango.Services.CouponAPI.Repositories;
 using Mango.Services.CouponAPI.Repositories.IRepository;
 using Mango.Services.CouponAPI.Services;
 using Mango.Services.CouponAPI.Services.IServices;
+using Mango.Services.CouponAPI.Shared.Extensions;
 using Mango.Services.CouponAPI.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 
@@ -51,6 +52,7 @@ namespace Mango.Services.CouponAPI
                 });
             });
             var app = builder.Build();
+            app.UseGlobalExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

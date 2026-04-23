@@ -5,6 +5,7 @@ using Mango.Services.OrderAPI.Repositories;
 using Mango.Services.OrderAPI.Repositories.IRepository;
 using Mango.Services.OrderAPI.Services;
 using Mango.Services.OrderAPI.Services.IServices;
+using Mango.Services.OrderAPI.Shared.Extensions;
 using Mango.Services.OrderAPI.UnitOfWork;
 using MessageBus;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,7 @@ namespace Mango.Services.OrderAPI
                 });
             });
             var app = builder.Build();
+            app.UseGlobalExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

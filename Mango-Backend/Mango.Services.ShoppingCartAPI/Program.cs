@@ -5,6 +5,7 @@ using Mango.Services.ShoppingCartAPI.Repositories;
 using Mango.Services.ShoppingCartAPI.Repositories.IRepository;
 using Mango.Services.ShoppingCartAPI.Service;
 using Mango.Services.ShoppingCartAPI.Service.IService;
+using Mango.Services.ShoppingCartAPI.Shared.Extensions;
 using Mango.Services.ShoppingCartAPI.UnitOfWork;
 using MessageBus;
 using MessageBus;
@@ -66,6 +67,7 @@ namespace Mango.Services.ShoppingCartAPI
                 });
             });
             var app = builder.Build();
+            app.UseGlobalExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

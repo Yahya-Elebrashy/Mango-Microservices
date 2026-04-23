@@ -6,6 +6,7 @@ using Mango.Services.ProductAPI.Repositories;
 using Mango.Services.ProductAPI.Repositories.IRepository;
 using Mango.Services.ProductAPI.Services;
 using Mango.Services.ProductAPI.Services.IServices;
+using Mango.Services.ProductAPI.Shared.Extensions;
 using Mango.Services.ProductAPI.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,9 +51,10 @@ namespace ProductAPI
                 });
             });
             var app = builder.Build();
+            app.UseGlobalExceptionHandler();
 
-			// Configure the HTTP request pipeline.
-			if (app.Environment.IsDevelopment())
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
 			{
 				app.UseSwagger();
 				app.UseSwaggerUI();

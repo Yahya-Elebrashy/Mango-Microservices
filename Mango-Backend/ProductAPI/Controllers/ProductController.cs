@@ -1,15 +1,8 @@
-﻿using AutoMapper;
-using Azure;
-using Mango.Services.ProductAPI.Constants;
-using Mango.Services.ProductAPI.Data;
+﻿using Mango.Services.ProductAPI.Constants;
 using Mango.Services.ProductAPI.Models.Dto;
-using Mango.Services.ProductAPI.Services;
 using Mango.Services.ProductAPI.Services.IServices;
-using Mango.Services.ProductAPI.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ProductAPI.Models;
 using ProductAPI.Models.Dto;
 
 namespace Mango.Services.ProductAPI.Controllers
@@ -26,95 +19,51 @@ namespace Mango.Services.ProductAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ResponseDto<IEnumerable<ProductDto>>> Get()
+        public async Task<ActionResult<ResponseDto<IEnumerable<ProductDto>>>> Get()
         {
-            var response = new ResponseDto<IEnumerable<ProductDto>>();
-            try
+            return Ok(new ResponseDto<IEnumerable<ProductDto>>
             {
-                response.Result = await _productService.GetAllProductsAsync();
+                Result = await _productService.GetAllProductsAsync()
+            });
+        }
 
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-            }
-            return response;
-        }
-       
         [HttpGet("{id:int}")]
-        public async Task<ResponseDto<ProductDto>> Get(int id)
+        public async Task<ActionResult<ResponseDto<ProductDto>>> Get(int id)
         {
-            var response = new ResponseDto<ProductDto>();
-            try
-            {
-                var product = await _productService.GetProductByIdAsync(id);
-                if (product == null)
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Product not found";
-                    return response;
-                }
-                response.Result = product;
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-            }
-            return response;
+            var product = await _productService.GetProductByIdAsync(id);
+
+            if (product == null)
+                return NotFound(new ResponseDto<ProductDto> { IsSuccess = false, Message = "Product not found" });
+
+            return Ok(new ResponseDto<ProductDto> { Result = product });
         }
-        
+
         [Authorize(Roles = SD.RoleAdmin)]
         [HttpPost]
-        public async Task<ResponseDto<ProductDto>> Post(ProductDto productDto)
+        public async Task<ActionResult<ResponseDto<ProductDto>>> Post(ProductDto productDto)
         {
-            var response = new ResponseDto<ProductDto>();
-            try
+            return Ok(new ResponseDto<ProductDto>
             {
-                response.Result = await _productService.CreateProductAsync(productDto, Request);
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-            }
-            return response;
-        }
-        
-        [Authorize(Roles = SD.RoleAdmin)]
-        [HttpPut]
-        public async Task<ResponseDto<ProductDto>> Update(ProductDto productDto)
-        {
-            var response = new ResponseDto<ProductDto>();
-            try
-            {
-                response.Result = await _productService.UpdateProductAsync(productDto, Request);
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-            }
-            return response;
+                Result = await _productService.CreateProductAsync(productDto, Request)
+            });
         }
 
-        [HttpDelete("{id:int}")]
         [Authorize(Roles = SD.RoleAdmin)]
-        public async Task<ResponseDto<string>> Delete(int id)
+        [HttpPut]
+        public async Task<ActionResult<ResponseDto<ProductDto>>> Update(ProductDto productDto)
         {
-            var response = new ResponseDto<string>();
-            try
+            return Ok(new ResponseDto<ProductDto>
             {
-                await _productService.DeleteProductAsync(id);
-                response.Result = "Deleted successfully";
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Message = ex.Message;
-            }
-            return response;
+                Result = await _productService.UpdateProductAsync(productDto, Request)
+            });
+        }
+
+        [Authorize(Roles = SD.RoleAdmin)]
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<ResponseDto<string>>> Delete(int id)
+        {
+            await _productService.DeleteProductAsync(id);
+            return Ok(new ResponseDto<string> { Result = "Deleted successfully" });
         }
     }
 }
