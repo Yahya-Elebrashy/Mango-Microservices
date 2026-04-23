@@ -3,6 +3,8 @@ using Mango.Services.OrderAPI.Data;
 using Mango.Services.OrderAPI.Extensions;
 using Mango.Services.OrderAPI.Repositories;
 using Mango.Services.OrderAPI.Repositories.IRepository;
+using Mango.Services.OrderAPI.Services;
+using Mango.Services.OrderAPI.Services.IServices;
 using Mango.Services.OrderAPI.UnitOfWork;
 using MessageBus;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +35,7 @@ namespace Mango.Services.OrderAPI
             builder.Services.AddSingleton(mapper);
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            builder.Services.AddScoped<IOrderService, OrderService>();
             // Repository & UnitOfWork
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IUnitOfWork, Mango.Services.OrderAPI.UnitOfWork.UnitOfWork>();

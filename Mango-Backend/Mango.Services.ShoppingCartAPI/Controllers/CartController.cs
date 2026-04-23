@@ -3,6 +3,7 @@ using Azure;
 using Mango.Services.ShoppingCartAPI.Data;
 using Mango.Services.ShoppingCartAPI.Models;
 using Mango.Services.ShoppingCartAPI.Models.Dto;
+using Mango.Services.ShoppingCartAPI.Service;
 using Mango.Services.ShoppingCartAPI.Service.IService;
 using Mango.Services.ShoppingCartAPI.UnitOfWork;
 using MessageBus;
@@ -19,20 +20,10 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
     [ApiController]
     public class CartController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IProductService _productService;
-        private readonly ICouponService _couponService;
-        private readonly IMessageBus _messageBus;
-        private readonly IConfiguration _configuration;
-        public CartController(IUnitOfWork unitOfWork, IMapper mapper, IProductService productService, ICouponService couponService, IMessageBus messageBus, IConfiguration configuration)
+        private readonly ICartService _cartService;
+        public CartController(ICartService cartService)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _productService = productService;
-            _messageBus = messageBus;
-            _configuration = configuration;
-            _couponService = couponService;
+            _cartService = cartService;
         }
 
         [HttpPost("CartUpsert")]
@@ -41,44 +32,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             var response = new ResponseDto<CartDto>();
             try
             {
-                CartHeader cartHeaderFromDb = await _unitOfWork.CartHeader
-                                                               .GetAsync(c => c.UserId == cartDto.CartHeader.UserId);
-                if (cartHeaderFromDb == null)
-                {
-                    CartHeader newHeader = _mapper.Map<CartHeader>(cartDto.CartHeader);
-                    await _unitOfWork.CartHeader.CreateAsync(newHeader);
-                    await _unitOfWork.SaveAsync();
-
-                    cartDto.CartDetails.First().CartHeaderId = newHeader.CartHeaderId;
-                    await _unitOfWork.CartDetails.CreateAsync(
-                        _mapper.Map<CartDetails>(cartDto.CartDetails.First()));
-                    await _unitOfWork.SaveAsync();
-                }
-                else
-                {
-                    // if cartHeader not null
-                    // check if details has same product
-                    var cartDetailsFromDb = await _unitOfWork.CartDetails.GetAsync(
-                                                  c => c.ProductId == cartDto.CartDetails.First().ProductId
-                                                  && c.CartHeaderId == cartHeaderFromDb.CartHeaderId);
-                    if (cartDetailsFromDb == null)
-                    {
-                        // create cartDetails
-                        cartDto.CartDetails.First().CartHeaderId = cartHeaderFromDb.CartHeaderId;
-                        await _unitOfWork.CartDetails.CreateAsync(
-                                          _mapper.Map<CartDetails>(cartDto.CartDetails.First()));
-                    }
-                    else
-                    {
-                        // update count of catr details
-                        cartDto.CartDetails.First().Count += cartDetailsFromDb.Count;
-                        cartDto.CartDetails.First().CartHeaderId = cartDetailsFromDb.CartHeaderId;
-                        cartDto.CartDetails.First().CartDetailsId = cartDetailsFromDb.CartDetailsId;
-                        await _unitOfWork.CartDetails.UpdateAsync(_mapper.Map<CartDetails>(cartDto.CartDetails.First()));
-                    }
-                    await _unitOfWork.SaveAsync();
-                }
-                response.Result = cartDto;
+                response.Result = await _cartService.UpsertCartAsync(cartDto);
             }
             catch (Exception ex)
             {
@@ -86,7 +40,6 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                 response.Message = ex.Message;
                 return StatusCode(500, response);
             }
-
             return Ok(response);
         }
         [HttpDelete("RemoveCart/{cartDetailsId}")]
@@ -95,30 +48,14 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             var response = new ResponseDto<bool>();
             try
             {
-                CartDetails cartDetails = await _unitOfWork.CartDetails
-                                          .GetAsync(c => c.CartDetailsId == cartDetailsId);
-
-                if (cartDetails == null)
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Item not found";
-                    return NotFound(response);
-                }
-                int remainingItems = await _unitOfWork.CartDetails
-                                           .CountByHeaderIdAsync(cartDetails.CartHeaderId);
-
-                await _unitOfWork.CartDetails.RemoveAsync(cartDetails);
-                if (remainingItems == 1)
-                {
-                    var header = await _unitOfWork.CartHeader
-                                 .GetAsync(c => c.CartHeaderId == cartDetails.CartHeaderId);
- 
-                    if (header != null)
-                        await _unitOfWork.CartHeader.RemoveAsync(header);
-                }
-                await _unitOfWork.SaveAsync();
-
+                await _cartService.RemoveCartItemAsync(cartDetailsId);
                 response.Result = true;
+            }
+            catch (KeyNotFoundException ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return NotFound(response);
             }
             catch (Exception ex)
             {
@@ -126,7 +63,6 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                 response.Message = ex.Message;
                 return StatusCode(500, response);
             }
-
             return Ok(response);
         }
         [HttpGet("GetCart/{userId}")]
@@ -135,41 +71,13 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             var response = new ResponseDto<CartDto>();
             try
             {
-                var cartHeader = await _unitOfWork.CartHeader.GetAsync(c => c.UserId == userId);
-                if (cartHeader is null)
-                    return new ResponseDto<CartDto> { IsSuccess = false, Message = "Cart not found" };
-
-                var cartDetails = await _unitOfWork.CartDetails
-                    .GetAllAsync()
-                    .ContinueWith(t => t.Result.Where(c => c.CartHeaderId == cartHeader.CartHeaderId));
-
-                var cartDto = new CartDto
-                {
-                    CartHeader = _mapper.Map<CartHeaderDto>(cartHeader),
-                    CartDetails = _mapper.Map<IEnumerable<CartDetailsDto>>(cartDetails)
-                };
-
-                // Enrich with product info
-                var products = await _productService.GetProductsAsync();
-                foreach (var item in cartDto.CartDetails)
-                {
-                    item.ProductDto = products.FirstOrDefault(p => p.ProductId == item.ProductId);
-                    cartDto.CartHeader.CartTotal += item.Count * item.ProductDto?.Price ?? 0;
-                }
-
-                // Apply coupon
-                if (!string.IsNullOrEmpty(cartDto.CartHeader.CouponCode))
-                {
-                    var coupon = await _couponService.GetCouponAsync(cartDto.CartHeader.CouponCode);
-                    if (coupon != null && cartDto.CartHeader.CartTotal >= coupon.MinAmount)
-                    {
-                        cartDto.CartHeader.CartTotal -= coupon.DiscountAmount;
-                        cartDto.CartHeader.Discount = coupon.DiscountAmount;
-                    }
-                }
-
-                cartDto.CartHeader.CartTotal = Math.Round(cartDto.CartHeader.CartTotal, 2);
-                response.Result = cartDto;
+                response.Result = await _cartService.GetCartAsync(userId);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return NotFound(response);
             }
             catch (Exception ex)
             {
@@ -177,7 +85,6 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                 response.Message = ex.Message;
                 return StatusCode(500, response);
             }
-
             return Ok(response);
         }
         [HttpPost("ApplyCoupon")]
@@ -192,28 +99,21 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                     response.Message = "Invalid request";
                     return BadRequest(response);
                 }
-                var cartFromDb = await _unitOfWork.CartHeader
-                                .GetAsync(c => c.UserId == cartDto.CartHeader.UserId);
-                if (cartFromDb == null)
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Cart not found";
-                    return NotFound(response);
-                }
-                var coupon = await _couponService.GetCouponAsync(cartDto.CartHeader.CouponCode);
-
-                if (coupon == null || string.IsNullOrEmpty(coupon.CouponCode))
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Invalid coupon code";
-                    return BadRequest(response);
-                }
-                cartFromDb.CouponCode = cartDto.CartHeader.CouponCode;
-                await _unitOfWork.CartHeader.UpdateAsync(cartFromDb);
-                await _unitOfWork.SaveAsync();
-
+                await _cartService.ApplyCouponAsync(cartDto.CartHeader.UserId, cartDto.CartHeader.CouponCode);
                 response.Result = true;
                 response.Message = "Coupon applied successfully";
+            }
+            catch (KeyNotFoundException ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return NotFound(response);
+            }
+            catch (ArgumentException ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return BadRequest(response);
             }
             catch (Exception ex)
             {
@@ -221,7 +121,6 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                 response.Message = ex.Message;
                 return StatusCode(500, response);
             }
-
             return Ok(response);
         }
         [HttpPost("RemoveCoupon")]
@@ -236,17 +135,15 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                     response.Message = "Invalid request";
                     return BadRequest(response);
                 }
-                var cartFromDb = await _unitOfWork.CartHeader.GetAsync(u => u.UserId == cartDto.CartHeader.UserId);
-                if (cartFromDb == null)
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Cart not found";
-                    return NotFound(response);
-                }
-                cartFromDb.CouponCode = "";
-                await _unitOfWork.SaveAsync();
+                await _cartService.RemoveCouponAsync(cartDto.CartHeader.UserId);
                 response.Result = true;
                 response.Message = "Coupon removed successfully";
+            }
+            catch (KeyNotFoundException ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
+                return NotFound(response);
             }
             catch (Exception ex)
             {
@@ -262,10 +159,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
             var response = new ResponseDto<bool>();
             try
             {
-                // Publish message to RabbitMQ
-                var queueName = _configuration.GetValue<string>("RabbitMQ:EmailQueue") ?? "emailcartqueue";
-                await _messageBus.PublishMessage(cartDto, queueName);
-
+                await _cartService.EmailCartRequestAsync(cartDto);
                 response.Result = true;
                 response.Message = "Email request sent to queue successfully";
             }

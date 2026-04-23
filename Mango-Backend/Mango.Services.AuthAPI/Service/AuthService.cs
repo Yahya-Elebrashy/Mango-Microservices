@@ -3,6 +3,7 @@ using Mango.Services.AuthAPI.Models;
 using Mango.Services.AuthAPI.Models.Dto;
 using Mango.Services.AuthAPI.Service.IService;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Mango.Services.AuthAPI.Service
 {
@@ -22,85 +23,66 @@ namespace Mango.Services.AuthAPI.Service
             _roleManager = roleManager;
         }
 
-        public async Task<bool> AssignRole(string email, string roleNname)
+        public async Task<bool> AssignRole(string email, string roleName)
         {
             var user = _db.applicationUsers.FirstOrDefault(u => u.Email.ToLower() == email.ToLower());
             if (user is not null)
             {
-                if (!_roleManager.RoleExistsAsync(roleNname).GetAwaiter().GetResult())
-                {
-                    // Create role 
-                    _roleManager.CreateAsync(new IdentityRole(roleNname)).GetAwaiter().GetResult();
-                }
-                await _userManager.AddToRoleAsync(user, roleNname);
+                if (!await _roleManager.RoleExistsAsync(roleName))
+                    await _roleManager.CreateAsync(new IdentityRole(roleName));
+                await _userManager.AddToRoleAsync(user, roleName);
                 return true;
             }
             return false;
         }
 
-        public async Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto)
+        public async Task<LoginResponseDto> Login(LoginRequestDto dto)
         {
-            var user = _db.applicationUsers.FirstOrDefault(u => u.UserName.ToLower() == loginRequestDto.UserName.ToLower());
-            var isValid = await _userManager.CheckPasswordAsync(user, loginRequestDto.Password);
-            if (isValid ==  false || user == null)
-            {
-                return new LoginResponseDto
-                {
-                    User = null,
-                    Token = ""
-                };
-            }
-            // if user was found 
-            UserDto userDto = new UserDto
-            {
-               Id = user.Id,
-               Email = user.Email,
-               Name = user.Name,
-               PhoneNumber = user.PhoneNumber
-            };
-            // Generate Token
+            var user = await _db.applicationUsers
+            .FirstOrDefaultAsync(u => u.UserName!.ToLower() == dto.UserName.ToLower());
+
+            // Guard clause — user not found
+            if (user is null)
+                return new LoginResponseDto { User = null, Token = string.Empty };
+
+            var isPasswordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
+
+            // Guard clause — wrong password
+            if (!isPasswordValid)
+                return new LoginResponseDto { User = null, Token = string.Empty };
+
             var roles = await _userManager.GetRolesAsync(user);
             var token = _jwtTokenGenerator.GenerateToken(user, roles);
+
             return new LoginResponseDto
             {
-                User = userDto,
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    Email = user.Email!,
+                    Name = user.Name,
+                    PhoneNumber = user.PhoneNumber!
+                },
                 Token = token
             };
         }
 
-        public async Task<string> Register(RegisterationRequestDto registerationRequestDto)
+        public async Task<string> Register(RegisterationRequestDto dto)
         {
-            ApplicationUser user = new()
+            var user = new ApplicationUser
             {
-                UserName = registerationRequestDto.Email,
-                Email = registerationRequestDto.Email,
-                Name = registerationRequestDto.Name,
-                PhoneNumber = registerationRequestDto.PhoneNumber
+                UserName = dto.Email,
+                Email = dto.Email,
+                Name = dto.Name,
+                PhoneNumber = dto.PhoneNumber
             };
 
-            try
-            {
-                var result = await _userManager.CreateAsync(user, registerationRequestDto.Password);
-                if (result.Succeeded)
-                {
-                    var userToReturn = _db.Users.First(u => u.UserName == registerationRequestDto.Email);
-                    UserDto userDto= new UserDto
-                    {
-                        Email = userToReturn.Email,
-                        Name = userToReturn.Name,
-                        PhoneNumber = userToReturn.PhoneNumber,
-                        Id = userToReturn.Id
-                    };
-                    return "";
-                }
-                else
-                {
-                    return result.Errors.FirstOrDefault().Description;
-                }
-            }
-            catch(Exception ex) {
-            }
-            return "Error Encountered";
+            var result = await _userManager.CreateAsync(user, dto.Password);
+
+            if (!result.Succeeded)
+                return result.Errors.FirstOrDefault()?.Description ?? "Registration failed";
+
+            return string.Empty;
         }
     }
 }

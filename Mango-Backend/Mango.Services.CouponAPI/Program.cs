@@ -4,6 +4,8 @@ using Mango.Services.CouponAPI.Data;
 using Mango.Services.CouponAPI.Extensions;
 using Mango.Services.CouponAPI.Repositories;
 using Mango.Services.CouponAPI.Repositories.IRepository;
+using Mango.Services.CouponAPI.Services;
+using Mango.Services.CouponAPI.Services.IServices;
 using Mango.Services.CouponAPI.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +28,7 @@ namespace Mango.Services.CouponAPI
             builder.Services.AddSingleton(mapper);
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            builder.Services.AddScoped<ICouponService, CouponService>();
             // Repository & UnitOfWork
             builder.Services.AddScoped<ICouponRepository, CouponRepository>();
             builder.Services.AddScoped<IUnitOfWork, Mango.Services.CouponAPI.UnitOfWork.UnitOfWork>();

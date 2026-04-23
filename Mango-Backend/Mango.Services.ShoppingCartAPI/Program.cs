@@ -49,6 +49,7 @@ namespace Mango.Services.ShoppingCartAPI
             builder.Services.AddControllers();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<ICouponService, CouponService>();
+            builder.Services.AddScoped<ICartService, CartService>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

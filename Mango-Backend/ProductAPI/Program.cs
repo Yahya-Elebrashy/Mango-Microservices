@@ -4,6 +4,8 @@ using Mango.Services.ProductAPI.Data;
 using Mango.Services.ProductAPI.Extensions;
 using Mango.Services.ProductAPI.Repositories;
 using Mango.Services.ProductAPI.Repositories.IRepository;
+using Mango.Services.ProductAPI.Services;
+using Mango.Services.ProductAPI.Services.IServices;
 using Mango.Services.ProductAPI.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,10 +28,11 @@ namespace ProductAPI
 			builder.Services.AddSingleton(mapper);
 			builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            builder.Services.AddScoped<IProductService, ProductService>();
             // Repository & UnitOfWork
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
+            builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddControllers();
 			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 			builder.Services.AddEndpointsApiExplorer();

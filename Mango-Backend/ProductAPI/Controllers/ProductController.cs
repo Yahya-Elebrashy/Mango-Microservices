@@ -3,6 +3,8 @@ using Azure;
 using Mango.Services.ProductAPI.Constants;
 using Mango.Services.ProductAPI.Data;
 using Mango.Services.ProductAPI.Models.Dto;
+using Mango.Services.ProductAPI.Services;
+using Mango.Services.ProductAPI.Services.IServices;
 using Mango.Services.ProductAPI.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -16,13 +18,11 @@ namespace Mango.Services.ProductAPI.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IProductService _productService;
 
-        public ProductController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ProductController(IProductService productService)
         {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
+            _productService = productService;
         }
 
         [HttpGet]
@@ -31,8 +31,8 @@ namespace Mango.Services.ProductAPI.Controllers
             var response = new ResponseDto<IEnumerable<ProductDto>>();
             try
             {
-                var products = await _unitOfWork.Product.GetAllAsync();
-                response.Result = _mapper.Map<IEnumerable<ProductDto>>(products);
+                response.Result = await _productService.GetAllProductsAsync();
+
             }
             catch (Exception ex)
             {
@@ -48,16 +48,14 @@ namespace Mango.Services.ProductAPI.Controllers
             var response = new ResponseDto<ProductDto>();
             try
             {
-                var product = await _unitOfWork.Product.GetAsync(p => p.ProductId == id);
-
+                var product = await _productService.GetProductByIdAsync(id);
                 if (product == null)
                 {
                     response.IsSuccess = false;
                     response.Message = "Product not found";
                     return response;
                 }
-
-                response.Result = _mapper.Map<ProductDto>(product);
+                response.Result = product;
             }
             catch (Exception ex)
             {
@@ -74,42 +72,7 @@ namespace Mango.Services.ProductAPI.Controllers
             var response = new ResponseDto<ProductDto>();
             try
             {
-                Product product = _mapper.Map<Product>(productDto);
-
-                await _unitOfWork.Product.CreateAsync(product);
-                await _unitOfWork.SaveAsync();
-
-                if (productDto.Image != null)
-                {
-
-                    string fileName = product.ProductId + Path.GetExtension(productDto.Image.FileName);
-                    string filePath = @"wwwroot\ProductImages\" + fileName;
-
-                    //I have added the if condition to remove the any image with same name if that exist in the folder by any change
-                    var directoryLocation = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-                    FileInfo file = new FileInfo(directoryLocation);
-                    if (file.Exists)
-                    {
-                        file.Delete();
-                    }
-
-                    var filePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-                    using (var fileStream = new FileStream(filePathDirectory, FileMode.Create))
-                    {
-                        productDto.Image.CopyTo(fileStream);
-                    }
-                    var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
-                    product.ImageUrl = baseUrl + "/ProductImages/" + fileName;
-                    product.ImageLocalPath = filePath;
-                }
-                else
-                {
-                    product.ImageUrl = "https://placehold.co/600x400";
-                }
-                await _unitOfWork.Product.UpdateAsync(product);
-                await _unitOfWork.SaveAsync();
-
-                response.Result = _mapper.Map<ProductDto>(product);
+                response.Result = await _productService.CreateProductAsync(productDto, Request);
             }
             catch (Exception ex)
             {
@@ -126,42 +89,7 @@ namespace Mango.Services.ProductAPI.Controllers
             var response = new ResponseDto<ProductDto>();
             try
             {
-                var product = await _unitOfWork.Product.GetAsync(x => x.ProductId == productDto.ProductId);
-
-                if (product == null)
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Product not found";
-                    return response;
-                }
-                _mapper.Map(productDto, product);
-                if (productDto.Image != null)
-                {
-                    if (!string.IsNullOrEmpty(product.ImageLocalPath))
-                    {
-                        var oldFilePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), product.ImageLocalPath);
-                        FileInfo file = new FileInfo(oldFilePathDirectory);
-                        if (file.Exists)
-                        {
-                            file.Delete();
-                        }
-                    }
-
-                    string fileName = product.ProductId + Path.GetExtension(productDto.Image.FileName);
-                    string filePath = @"wwwroot\ProductImages\" + fileName;
-                    var filePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-                    using (var fileStream = new FileStream(filePathDirectory, FileMode.Create))
-                    {
-                        productDto.Image.CopyTo(fileStream);
-                    }
-                    var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
-                    product.ImageUrl = baseUrl + "/ProductImages/" + fileName;
-                    product.ImageLocalPath = filePath;
-                }
-                await _unitOfWork.Product.UpdateAsync(product);
-                await _unitOfWork.SaveAsync();
-
-                response.Result = _mapper.Map<ProductDto>(product);
+                response.Result = await _productService.UpdateProductAsync(productDto, Request);
             }
             catch (Exception ex)
             {
@@ -178,26 +106,7 @@ namespace Mango.Services.ProductAPI.Controllers
             var response = new ResponseDto<string>();
             try
             {
-                var product = await _unitOfWork.Product.GetAsync(p => p.ProductId == id);
-                if (product == null)
-                {
-                    response.IsSuccess = false;
-                    response.Message = "Product not found";
-                    return response;
-                }
-                if (!string.IsNullOrEmpty(product.ImageLocalPath))
-                {
-                    var oldFilePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), product.ImageLocalPath);
-                    FileInfo file = new FileInfo(oldFilePathDirectory);
-                    if (file.Exists)
-                    {
-                        file.Delete();
-                    }
-                }
-
-                await _unitOfWork.Product.RemoveAsync(product);
-                await _unitOfWork.SaveAsync();
-
+                await _productService.DeleteProductAsync(id);
                 response.Result = "Deleted successfully";
             }
             catch (Exception ex)
