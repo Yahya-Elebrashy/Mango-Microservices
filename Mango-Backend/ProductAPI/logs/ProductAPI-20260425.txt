@@ -1,0 +1,43 @@
+[2026-04-25 11:21:28 INF] [ProductAPI] Starting ProductAPI...
+[2026-04-25 11:21:34 INF] [ProductAPI] Now listening on: https://localhost:7208
+[2026-04-25 11:21:34 INF] [ProductAPI] Now listening on: http://localhost:5254
+[2026-04-25 11:21:34 INF] [ProductAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 11:21:34 INF] [ProductAPI] Hosting environment: Development
+[2026-04-25 11:21:34 INF] [ProductAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\ProductAPI
+[2026-04-25 11:25:46 INF] [ProductAPI] Starting ProductAPI...
+[2026-04-25 11:25:49 INF] [ProductAPI] Now listening on: https://localhost:7208
+[2026-04-25 11:25:49 INF] [ProductAPI] Now listening on: http://localhost:5254
+[2026-04-25 11:25:50 INF] [ProductAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 11:25:50 INF] [ProductAPI] Hosting environment: Development
+[2026-04-25 11:25:50 INF] [ProductAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\ProductAPI
+[2026-04-25 20:20:32 INF] [ProductAPI] Starting ProductAPI...
+[2026-04-25 20:20:39 INF] [ProductAPI] Now listening on: https://localhost:7208
+[2026-04-25 20:20:39 INF] [ProductAPI] Now listening on: http://localhost:5254
+[2026-04-25 20:20:39 INF] [ProductAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 20:20:39 INF] [ProductAPI] Hosting environment: Development
+[2026-04-25 20:20:39 INF] [ProductAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\ProductAPI
+[2026-04-25 20:32:30 INF] [ProductAPI] Starting ProductAPI...
+[2026-04-25 20:32:36 INF] [ProductAPI] Now listening on: https://localhost:7208
+[2026-04-25 20:32:36 INF] [ProductAPI] Now listening on: http://localhost:5254
+[2026-04-25 20:32:36 INF] [ProductAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 20:32:36 INF] [ProductAPI] Hosting environment: Development
+[2026-04-25 20:32:36 INF] [ProductAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\ProductAPI
+[2026-04-25 21:10:19 INF] [ProductAPI] Starting ProductAPI...
+[2026-04-25 21:10:26 INF] [ProductAPI] Now listening on: https://localhost:7208
+[2026-04-25 21:10:26 INF] [ProductAPI] Now listening on: http://localhost:5254
+[2026-04-25 21:10:26 INF] [ProductAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:10:26 INF] [ProductAPI] Hosting environment: Development
+[2026-04-25 21:10:26 INF] [ProductAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\ProductAPI
+[2026-04-25 21:11:50 INF] [ProductAPI] Starting ProductAPI...
+[2026-04-25 21:13:21 INF] [ProductAPI] Starting ProductAPI...
+[2026-04-25 21:13:27 INF] [ProductAPI] Now listening on: https://localhost:7208
+[2026-04-25 21:13:27 INF] [ProductAPI] Now listening on: http://localhost:5254
+[2026-04-25 21:13:27 INF] [ProductAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:13:27 INF] [ProductAPI] Hosting environment: Development
+[2026-04-25 21:13:27 INF] [ProductAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\ProductAPI
+[2026-04-25 21:15:10 INF] [ProductAPI] Starting ProductAPI...
+[2026-04-25 21:15:17 INF] [ProductAPI] Now listening on: https://localhost:7208
+[2026-04-25 21:15:17 INF] [ProductAPI] Now listening on: http://localhost:5254
+[2026-04-25 21:15:17 INF] [ProductAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:15:17 INF] [ProductAPI] Hosting environment: Development
+[2026-04-25 21:15:17 INF] [ProductAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\ProductAPI

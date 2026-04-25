@@ -1,0 +1,6 @@
+[2026-04-25 20:32:40 INF] [CouponAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 20:32:40 INF] [CouponAPI] Hosting environment: Development
+[2026-04-25 20:32:40 INF] [CouponAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.CouponAPI
+[2026-04-25 21:10:29 INF] [CouponAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:10:29 INF] [CouponAPI] Hosting environment: Development
+[2026-04-25 21:10:29 INF] [CouponAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.CouponAPI

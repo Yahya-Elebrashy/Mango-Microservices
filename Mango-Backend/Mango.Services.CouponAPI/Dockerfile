@@ -2,9 +2,13 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 COPY Mango.Services.CouponAPI/*.csproj ./Mango.Services.CouponAPI/
+COPY Logging/*.csproj ./Logging/
+
 RUN dotnet restore ./Mango.Services.CouponAPI/Mango.Services.CouponAPI.csproj
 
 COPY Mango.Services.CouponAPI/. ./Mango.Services.CouponAPI/
+COPY Logging/. ./Logging/
+
 RUN dotnet publish ./Mango.Services.CouponAPI/Mango.Services.CouponAPI.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final

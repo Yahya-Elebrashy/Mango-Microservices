@@ -1,88 +1,50 @@
-using AutoMapper;
-using Mango.Services.ProductAPI;
-using Mango.Services.ProductAPI.Data;
+using Logging;
 using Mango.Services.ProductAPI.Extensions;
-using Mango.Services.ProductAPI.Repositories;
-using Mango.Services.ProductAPI.Repositories.IRepository;
-using Mango.Services.ProductAPI.Services;
-using Mango.Services.ProductAPI.Services.IServices;
 using Mango.Services.ProductAPI.Shared.Extensions;
-using Mango.Services.ProductAPI.UnitOfWork;
-using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace ProductAPI
 {
-	public class Program
-	{
-		public static void Main(string[] args)
-		{
-			var builder = WebApplication.CreateBuilder(args);
-
-			// Add services to the container.
-
-			//Add DB Context => ConnectionStrings
-			builder.Services.AddDbContext<AppDbContext>(options =>
-			{
-				options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-			});
-			IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
-			builder.Services.AddSingleton(mapper);
-			builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-            builder.Services.AddScoped<IProductService, ProductService>();
-            // Repository & UnitOfWork
-            builder.Services.AddScoped<IProductRepository, ProductRepository>();
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<IProductService, ProductService>();
-            builder.Services.AddControllers();
-			// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-			builder.Services.AddEndpointsApiExplorer();
-			builder.Services.AddSwaggerGen();
-
-			builder.AddAppAuthentication();
-			builder.Services.AddAuthentication();
-            builder.Services.AddCors(options =>
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            SerilogConfiguration.Configure("ProductAPI");
+            try
             {
-                options.AddPolicy("MicroservicePolicy", policy =>
-                {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
-                });
-            });
-            var app = builder.Build();
-            app.UseGlobalExceptionHandler();
+                Log.Information("Starting ProductAPI...");
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-			{
-				app.UseSwagger();
-				app.UseSwaggerUI();
-			}
+                var builder = WebApplication.CreateBuilder(args);
 
-			app.UseHttpsRedirection();
-            app.UseCors("MicroservicePolicy");
-            app.UseAuthentication();
-			app.UseAuthorization();
-			app.UseStaticFiles();
+                builder.Host.UseSerilog();
 
-			app.MapControllers();
+                builder.Services
+                    .AddDatabase(builder.Configuration)
+                    .AddAutoMapperConfiguration()
+                    .AddApplicationServices()
+                    .AddSwaggerConfiguration()
+                    .AddCorsConfiguration()
+                    .AddControllers();
 
-            ApplyMigration();
-            app.Run();
+                builder.AddAppAuthentication();
+                builder.Services.AddAuthentication();
 
-            void ApplyMigration()
+                var app = builder.Build();
+
+                app.UseSwaggerConfiguration()
+                   .UsePipelineConfiguration()
+                   .ApplyMigrations();
+
+                app.Run();
+            }
+            catch (Exception ex)
             {
-                using (var scope = app.Services.CreateScope())
-                {
-                    var _db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-                    if (_db.Database.GetPendingMigrations().Count() > 0)
-                    {
-                        _db.Database.Migrate();
-                    }
-                }
+                Log.Fatal(ex, "ProductAPI failed to start");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
             }
         }
-	}
+    }
 }

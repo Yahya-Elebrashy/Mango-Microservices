@@ -1,0 +1,25 @@
+[2026-04-25 20:32:39 INF] [OrderAPI] Now listening on: https://localhost:7119
+[2026-04-25 20:32:39 INF] [OrderAPI] Now listening on: http://localhost:5279
+[2026-04-25 20:32:39 INF] [OrderAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 20:32:39 INF] [OrderAPI] Hosting environment: Development
+[2026-04-25 20:32:39 INF] [OrderAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.OrderAPI
+[2026-04-25 21:10:19 INF] [OrderAPI] Starting OrderAPI...
+[2026-04-25 21:10:27 INF] [OrderAPI] Now listening on: https://localhost:7119
+[2026-04-25 21:10:27 INF] [OrderAPI] Now listening on: http://localhost:5279
+[2026-04-25 21:10:27 INF] [OrderAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:10:27 INF] [OrderAPI] Hosting environment: Development
+[2026-04-25 21:10:27 INF] [OrderAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.OrderAPI
+[2026-04-25 21:11:32 INF] [OrderAPI] Starting OrderAPI...
+[2026-04-25 21:11:49 INF] [OrderAPI] Starting OrderAPI...
+[2026-04-25 21:13:21 INF] [OrderAPI] Starting OrderAPI...
+[2026-04-25 21:13:28 INF] [OrderAPI] Now listening on: https://localhost:7119
+[2026-04-25 21:13:28 INF] [OrderAPI] Now listening on: http://localhost:5279
+[2026-04-25 21:13:28 INF] [OrderAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:13:28 INF] [OrderAPI] Hosting environment: Development
+[2026-04-25 21:13:28 INF] [OrderAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.OrderAPI
+[2026-04-25 21:15:10 INF] [OrderAPI] Starting OrderAPI...
+[2026-04-25 21:15:18 INF] [OrderAPI] Now listening on: https://localhost:7119
+[2026-04-25 21:15:18 INF] [OrderAPI] Now listening on: http://localhost:5279
+[2026-04-25 21:15:18 INF] [OrderAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:15:18 INF] [OrderAPI] Hosting environment: Development
+[2026-04-25 21:15:18 INF] [OrderAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.OrderAPI

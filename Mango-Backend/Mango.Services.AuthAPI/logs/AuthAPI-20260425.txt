@@ -1,0 +1,25 @@
+[2026-04-25 20:32:36 INF] [AuthAPI] Now listening on: https://localhost:7200
+[2026-04-25 20:32:37 INF] [AuthAPI] Now listening on: http://localhost:5127
+[2026-04-25 20:32:37 INF] [AuthAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 20:32:37 INF] [AuthAPI] Hosting environment: Development
+[2026-04-25 20:32:37 INF] [AuthAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.AuthAPI
+[2026-04-25 21:10:19 INF] [AuthAPI] Starting AuthAPI...
+[2026-04-25 21:10:26 INF] [AuthAPI] Now listening on: https://localhost:7200
+[2026-04-25 21:10:26 INF] [AuthAPI] Now listening on: http://localhost:5127
+[2026-04-25 21:10:26 INF] [AuthAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:10:26 INF] [AuthAPI] Hosting environment: Development
+[2026-04-25 21:10:26 INF] [AuthAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.AuthAPI
+[2026-04-25 21:11:32 INF] [AuthAPI] Starting AuthAPI...
+[2026-04-25 21:11:49 INF] [AuthAPI] Starting AuthAPI...
+[2026-04-25 21:13:21 INF] [AuthAPI] Starting AuthAPI...
+[2026-04-25 21:13:27 INF] [AuthAPI] Now listening on: https://localhost:7200
+[2026-04-25 21:13:27 INF] [AuthAPI] Now listening on: http://localhost:5127
+[2026-04-25 21:13:27 INF] [AuthAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:13:27 INF] [AuthAPI] Hosting environment: Development
+[2026-04-25 21:13:27 INF] [AuthAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.AuthAPI
+[2026-04-25 21:15:10 INF] [AuthAPI] Starting AuthAPI...
+[2026-04-25 21:15:16 INF] [AuthAPI] Now listening on: https://localhost:7200
+[2026-04-25 21:15:16 INF] [AuthAPI] Now listening on: http://localhost:5127
+[2026-04-25 21:15:16 INF] [AuthAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:15:16 INF] [AuthAPI] Hosting environment: Development
+[2026-04-25 21:15:16 INF] [AuthAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.AuthAPI

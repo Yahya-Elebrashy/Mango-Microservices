@@ -1,0 +1,5 @@
+[2026-04-25 20:32:37 INF] [ProductAPI] Now listening on: https://localhost:7292
+[2026-04-25 20:32:38 INF] [ProductAPI] Now listening on: http://localhost:5213
+[2026-04-25 20:32:38 INF] [ProductAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 20:32:38 INF] [ProductAPI] Hosting environment: Development
+[2026-04-25 20:32:38 INF] [ProductAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.ShoppingCartAPI

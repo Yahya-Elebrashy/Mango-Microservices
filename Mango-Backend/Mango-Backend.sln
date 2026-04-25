@@ -25,6 +25,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mango.Services.OrderAPI", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mango.GatewaySolution", "Mango.GatewaySolution\Mango.GatewaySolution.csproj", "{B5D13458-5190-4F58-AB3A-580270862B0A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{B94D198B-78FC-4E5E-8FCC-D60689D1F62E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "Logging\Logging.csproj", "{CA5FD16C-B585-4BD9-8E2A-017F5A63ED21}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +67,10 @@ Global
 		{B5D13458-5190-4F58-AB3A-580270862B0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5D13458-5190-4F58-AB3A-580270862B0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5D13458-5190-4F58-AB3A-580270862B0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA5FD16C-B585-4BD9-8E2A-017F5A63ED21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA5FD16C-B585-4BD9-8E2A-017F5A63ED21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA5FD16C-B585-4BD9-8E2A-017F5A63ED21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA5FD16C-B585-4BD9-8E2A-017F5A63ED21}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +84,7 @@ Global
 		{72C7BA5C-6E68-4F53-8457-EB217EABCA52} = {AE97B06E-3A7C-44B6-BDDE-17FACCA73565}
 		{FA496A98-AEF0-4814-9807-1B53436D845B} = {AE97B06E-3A7C-44B6-BDDE-17FACCA73565}
 		{B5D13458-5190-4F58-AB3A-580270862B0A} = {3D55836A-7BC1-4FAA-ADFC-771A9F8C08B7}
+		{CA5FD16C-B585-4BD9-8E2A-017F5A63ED21} = {B94D198B-78FC-4E5E-8FCC-D60689D1F62E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1340863B-A016-4C4B-ADB9-CCD02CDA5D70}

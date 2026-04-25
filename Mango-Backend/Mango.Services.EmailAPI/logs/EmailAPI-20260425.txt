@@ -1,0 +1,6 @@
+[2026-04-25 21:15:10 INF] [EmailAPI] Starting EmailAPI...
+[2026-04-25 21:15:16 INF] [EmailAPI] Now listening on: https://localhost:7079
+[2026-04-25 21:15:16 INF] [EmailAPI] Now listening on: http://localhost:5011
+[2026-04-25 21:15:16 INF] [EmailAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:15:16 INF] [EmailAPI] Hosting environment: Development
+[2026-04-25 21:15:16 INF] [EmailAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.EmailAPI

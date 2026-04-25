@@ -3,10 +3,14 @@ WORKDIR /app
 
 COPY Mango.Services.ShoppingCartAPI/*.csproj ./Mango.Services.ShoppingCartAPI/
 COPY MessageBus/*.csproj ./MessageBus/
+COPY Logging/*.csproj ./Logging/
+
 RUN dotnet restore ./Mango.Services.ShoppingCartAPI/Mango.Services.ShoppingCartAPI.csproj
 
 COPY Mango.Services.ShoppingCartAPI/. ./Mango.Services.ShoppingCartAPI/
 COPY MessageBus/. ./MessageBus/
+COPY Logging/. ./Logging/
+
 RUN dotnet publish ./Mango.Services.ShoppingCartAPI/Mango.Services.ShoppingCartAPI.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final

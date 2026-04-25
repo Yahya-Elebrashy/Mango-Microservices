@@ -1,0 +1,20 @@
+[2026-04-25 21:10:20 INF] [ShoppingCartAPI] Starting ShoppingCartAPI...
+[2026-04-25 21:10:26 INF] [ShoppingCartAPI] Now listening on: https://localhost:7292
+[2026-04-25 21:10:27 INF] [ShoppingCartAPI] Now listening on: http://localhost:5213
+[2026-04-25 21:10:27 INF] [ShoppingCartAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:10:27 INF] [ShoppingCartAPI] Hosting environment: Development
+[2026-04-25 21:10:27 INF] [ShoppingCartAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.ShoppingCartAPI
+[2026-04-25 21:11:32 INF] [ShoppingCartAPI] Starting ShoppingCartAPI...
+[2026-04-25 21:11:49 INF] [ShoppingCartAPI] Starting ShoppingCartAPI...
+[2026-04-25 21:13:21 INF] [ShoppingCartAPI] Starting ShoppingCartAPI...
+[2026-04-25 21:13:28 INF] [ShoppingCartAPI] Now listening on: https://localhost:7292
+[2026-04-25 21:13:28 INF] [ShoppingCartAPI] Now listening on: http://localhost:5213
+[2026-04-25 21:13:28 INF] [ShoppingCartAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:13:28 INF] [ShoppingCartAPI] Hosting environment: Development
+[2026-04-25 21:13:28 INF] [ShoppingCartAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.ShoppingCartAPI
+[2026-04-25 21:15:10 INF] [ShoppingCartAPI] Starting ShoppingCartAPI...
+[2026-04-25 21:15:17 INF] [ShoppingCartAPI] Now listening on: https://localhost:7292
+[2026-04-25 21:15:17 INF] [ShoppingCartAPI] Now listening on: http://localhost:5213
+[2026-04-25 21:15:17 INF] [ShoppingCartAPI] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:15:17 INF] [ShoppingCartAPI] Hosting environment: Development
+[2026-04-25 21:15:17 INF] [ShoppingCartAPI] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.Services.ShoppingCartAPI

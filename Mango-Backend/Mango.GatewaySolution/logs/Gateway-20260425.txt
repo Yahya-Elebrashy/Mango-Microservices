@@ -1,0 +1,58 @@
+[2026-04-25 11:21:33 INF] [Gateway] Now listening on: https://localhost:7058
+[2026-04-25 11:21:33 INF] [Gateway] Now listening on: http://localhost:5250
+[2026-04-25 11:21:33 INF] [Gateway] Application started. Press Ctrl+C to shut down.
+[2026-04-25 11:21:33 INF] [Gateway] Hosting environment: Development
+[2026-04-25 11:21:33 INF] [Gateway] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.GatewaySolution
+[2026-04-25 11:21:38 WRN] [Gateway] requestId: 0HNL2KEKJA774:00000001, previousRequestId: no previous request id, message: DownstreamRouteFinderMiddleware setting pipeline errors. IDownstreamRouteFinder returned Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET.
+[2026-04-25 11:21:38 WRN] [Gateway] requestId: 0HNL2KEKJA774:00000001, previousRequestId: no previous request id, message: Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET. errors found in ResponderMiddleware. Setting error response for request path:/, request method: GET
+[2026-04-25 11:21:38 INF] [Gateway] HTTP GET / responded 404 in 156.3587 ms
+[2026-04-25 11:25:48 INF] [Gateway] Now listening on: https://localhost:7058
+[2026-04-25 11:25:48 INF] [Gateway] Now listening on: http://localhost:5250
+[2026-04-25 11:25:48 INF] [Gateway] Application started. Press Ctrl+C to shut down.
+[2026-04-25 11:25:48 INF] [Gateway] Hosting environment: Development
+[2026-04-25 11:25:48 INF] [Gateway] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.GatewaySolution
+[2026-04-25 11:25:48 WRN] [Gateway] requestId: 0HNL2KH0H185T:00000001, previousRequestId: no previous request id, message: DownstreamRouteFinderMiddleware setting pipeline errors. IDownstreamRouteFinder returned Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET.
+[2026-04-25 11:25:48 WRN] [Gateway] requestId: 0HNL2KH0H185T:00000001, previousRequestId: no previous request id, message: Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET. errors found in ResponderMiddleware. Setting error response for request path:/, request method: GET
+[2026-04-25 11:25:48 INF] [Gateway] HTTP GET / responded 404 in 19.7263 ms
+[2026-04-25 20:20:37 INF] [Gateway] Now listening on: https://localhost:7058
+[2026-04-25 20:20:37 INF] [Gateway] Now listening on: http://localhost:5250
+[2026-04-25 20:20:37 INF] [Gateway] Application started. Press Ctrl+C to shut down.
+[2026-04-25 20:20:37 INF] [Gateway] Hosting environment: Development
+[2026-04-25 20:20:37 INF] [Gateway] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.GatewaySolution
+[2026-04-25 20:20:38 WRN] [Gateway] requestId: 0HNL2TRROBUQ2:00000001, previousRequestId: no previous request id, message: DownstreamRouteFinderMiddleware setting pipeline errors. IDownstreamRouteFinder returned Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET.
+[2026-04-25 20:20:38 WRN] [Gateway] requestId: 0HNL2TRROBUQ2:00000001, previousRequestId: no previous request id, message: Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET. errors found in ResponderMiddleware. Setting error response for request path:/, request method: GET
+[2026-04-25 20:20:38 INF] [Gateway] HTTP GET / responded 404 in 33.3291 ms
+[2026-04-25 20:32:33 INF] [Gateway] Now listening on: https://localhost:7058
+[2026-04-25 20:32:33 INF] [Gateway] Now listening on: http://localhost:5250
+[2026-04-25 20:32:33 INF] [Gateway] Application started. Press Ctrl+C to shut down.
+[2026-04-25 20:32:33 INF] [Gateway] Hosting environment: Development
+[2026-04-25 20:32:33 INF] [Gateway] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.GatewaySolution
+[2026-04-25 20:32:34 WRN] [Gateway] requestId: 0HNL2U2H8KFDU:00000001, previousRequestId: no previous request id, message: DownstreamRouteFinderMiddleware setting pipeline errors. IDownstreamRouteFinder returned Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET.
+[2026-04-25 20:32:34 WRN] [Gateway] requestId: 0HNL2U2H8KFDU:00000001, previousRequestId: no previous request id, message: Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET. errors found in ResponderMiddleware. Setting error response for request path:/, request method: GET
+[2026-04-25 20:32:34 INF] [Gateway] HTTP GET / responded 404 in 29.3054 ms
+[2026-04-25 21:10:23 INF] [Gateway] Now listening on: https://localhost:7058
+[2026-04-25 21:10:23 INF] [Gateway] Now listening on: http://localhost:5250
+[2026-04-25 21:10:23 INF] [Gateway] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:10:23 INF] [Gateway] Hosting environment: Development
+[2026-04-25 21:10:23 INF] [Gateway] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.GatewaySolution
+[2026-04-25 21:10:24 WRN] [Gateway] requestId: 0HNL2UNLQPQGK:00000001, previousRequestId: no previous request id, message: DownstreamRouteFinderMiddleware setting pipeline errors. IDownstreamRouteFinder returned Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET.
+[2026-04-25 21:10:24 WRN] [Gateway] requestId: 0HNL2UNLQPQGK:00000001, previousRequestId: no previous request id, message: Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET. errors found in ResponderMiddleware. Setting error response for request path:/, request method: GET
+[2026-04-25 21:10:25 INF] [Gateway] HTTP GET / responded 404 in 46.7871 ms
+[2026-04-25 21:11:53 INF] [Gateway] Now listening on: https://localhost:7058
+[2026-04-25 21:11:54 INF] [Gateway] Now listening on: http://localhost:5250
+[2026-04-25 21:13:24 INF] [Gateway] Now listening on: https://localhost:7058
+[2026-04-25 21:13:24 INF] [Gateway] Now listening on: http://localhost:5250
+[2026-04-25 21:13:25 INF] [Gateway] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:13:25 INF] [Gateway] Hosting environment: Development
+[2026-04-25 21:13:25 INF] [Gateway] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.GatewaySolution
+[2026-04-25 21:13:25 WRN] [Gateway] requestId: 0HNL2UPBNJDAJ:00000001, previousRequestId: no previous request id, message: DownstreamRouteFinderMiddleware setting pipeline errors. IDownstreamRouteFinder returned Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET.
+[2026-04-25 21:13:25 WRN] [Gateway] requestId: 0HNL2UPBNJDAJ:00000001, previousRequestId: no previous request id, message: Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET. errors found in ResponderMiddleware. Setting error response for request path:/, request method: GET
+[2026-04-25 21:13:25 INF] [Gateway] HTTP GET / responded 404 in 37.2178 ms
+[2026-04-25 21:15:13 INF] [Gateway] Now listening on: https://localhost:7058
+[2026-04-25 21:15:13 INF] [Gateway] Now listening on: http://localhost:5250
+[2026-04-25 21:15:14 INF] [Gateway] Application started. Press Ctrl+C to shut down.
+[2026-04-25 21:15:14 INF] [Gateway] Hosting environment: Development
+[2026-04-25 21:15:14 INF] [Gateway] Content root path: C:\Users\elebr\OneDrive\Desktop\Mango-Microservices\Mango-Backend\Mango.GatewaySolution
+[2026-04-25 21:15:15 WRN] [Gateway] requestId: 0HNL2UQCCBF6V:00000001, previousRequestId: no previous request id, message: DownstreamRouteFinderMiddleware setting pipeline errors. IDownstreamRouteFinder returned Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET.
+[2026-04-25 21:15:15 WRN] [Gateway] requestId: 0HNL2UQCCBF6V:00000001, previousRequestId: no previous request id, message: Error Code: UnableToFindDownstreamRouteError Message: Failed to match Route configuration for upstream path: /, verb: GET. errors found in ResponderMiddleware. Setting error response for request path:/, request method: GET
+[2026-04-25 21:15:15 INF] [Gateway] HTTP GET / responded 404 in 39.4970 ms

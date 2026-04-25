@@ -1,14 +1,7 @@
-
-using AutoMapper;
-using Mango.Services.CouponAPI.Data;
+using Logging;
 using Mango.Services.CouponAPI.Extensions;
-using Mango.Services.CouponAPI.Repositories;
-using Mango.Services.CouponAPI.Repositories.IRepository;
-using Mango.Services.CouponAPI.Services;
-using Mango.Services.CouponAPI.Services.IServices;
 using Mango.Services.CouponAPI.Shared.Extensions;
-using Mango.Services.CouponAPI.UnitOfWork;
-using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Mango.Services.CouponAPI
 {
@@ -16,73 +9,42 @@ namespace Mango.Services.CouponAPI
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-            // Add services to the container.
-
-            //Add DB Context => ConnectionStrings
-            builder.Services.AddDbContext<AppDbContext>(options =>
+            SerilogConfiguration.Configure("CouponAPI");
+            try
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-            });
-            IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
-            builder.Services.AddSingleton(mapper);
-            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+                Log.Information("Starting CouponAPI...");
 
-            builder.Services.AddScoped<ICouponService, CouponService>();
-            // Repository & UnitOfWork
-            builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-            builder.Services.AddScoped<IUnitOfWork, Mango.Services.CouponAPI.UnitOfWork.UnitOfWork>();
+                var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-            Stripe.StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
+                builder.Host.UseSerilog();
 
-            builder.AddAppAuthentication();
-            builder.Services.AddAuthentication();
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("MicroservicePolicy", policy =>
-                {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
-                });
-            });
-            var app = builder.Build();
-            app.UseGlobalExceptionHandler();
+                builder.Services
+                    .AddDatabase(builder.Configuration)
+                    .AddAutoMapperConfiguration()
+                    .AddApplicationServices()
+                    .AddStripeConfiguration(builder.Configuration)
+                    .AddSwaggerConfiguration()
+                    .AddCorsConfiguration()
+                    .AddControllers();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                builder.AddAppAuthentication();
+                builder.Services.AddAuthentication();
+
+                var app = builder.Build();
+
+                app.UseSwaggerConfiguration()
+                   .UsePipelineConfiguration()
+                   .ApplyMigrations();
+
+                app.Run();
             }
-
-            app.UseHttpsRedirection();
-            app.UseCors("MicroservicePolicy");
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-
-            app.MapControllers();
-
-            ApplyMigration();
-            app.Run();
-
-            void ApplyMigration()
+            catch (Exception ex)
             {
-                using (var scope = app.Services.CreateScope())
-                {
-                    var _db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-                    if (_db.Database.GetPendingMigrations().Count() > 0)
-                    {
-                        _db.Database.Migrate();
-                    }
-                }
+                Log.Fatal(ex, "CouponAPI failed to start");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
             }
         }
     }
